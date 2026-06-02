@@ -19,7 +19,7 @@ Because `InputController` explicitly supports static and randomized delayed acti
 
 ## List of Commands
 
-### Mouse Commands
+### Mouse Commands (Testing)
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
@@ -34,7 +34,7 @@ Because `InputController` explicitly supports static and randomized delayed acti
 * `mouse wait 500 press left` *(Translates to: `DelayedMouseButtonPress`)*
 * `mouse wait R[100,300] down right` *(Translates to: `RandomDelayedMouseButtonDown`)*
 
-### Keyboard Commands
+### Keyboard Commands (Testing)
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
@@ -44,9 +44,10 @@ Because `InputController` explicitly supports static and randomized delayed acti
 | `keyboard` | `combo` | `<modifier> <key>` | Holds a modifier, taps a key, and releases the modifier. | `keyboard combo control c` |
 | `keyboard` | `type` | `<text>` | Types out a sequence of keys automatically. | `keyboard type hello world` |
 
-### Engine Commands
+### Engine Commands (Testing)
 
 While most actions are tied to a specific input device, the controller also supports independent execution delays.
+The wait command serves as the action in the command syntax.
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
@@ -61,7 +62,7 @@ While most actions are tied to a specific input device, the controller also supp
 | `keyboard` | `ifheld` | `<key>` | Starts a block that is executed if a certain key is held (only supports A-Z and modifier keys). | `keyboard ifheld a` |
 | `keyboard` | `endif` | `None` | Ends a keyboard ifheld block. | `keyboard endif` |
 | `mouse` | `ifheld` | `<button>` | Starts a block that is executed if a certain mouse button is held. | `mouse ifheld left` |
-| `mouse` | `endif` | `None` | Ends a mouse ifheld block. | Mouse endif. |
+| `mouse` | `endif` | `None` | Ends a mouse ifheld block. | `mouse endif` |
 | `engine` | `ifon` | `<toggle key>` | Starts a block that is executed if a toggle key is toggled on. | `engine ifon capslock` |
 | `engine` | `ifoff` | `<toggle key>` | Starts a block that is executed if a toggle key is toggled off. | `engine ifoff capslock` |
 | `engine` | `endif` | `None` | Ends an engine ifon or ifonn block | `engine endif` |
@@ -72,6 +73,30 @@ While most actions are tied to a specific input device, the controller also supp
 | `engine` | `repeat` | `<count>` | Starts a block that repeats <count> amount of times. | `engine repeat 4` |
 | `engine` | `endrepeat` | `None` | Ends an engine repeat block. | `engine endrepeat` |
 
+### Variables (WIP)
+The engine also supports variables. Setting variables must always happen on top of the script, before any manipulation starts.
+
+| Input | Action | Arguments | Description | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| `engine` | `setvar` | `<var name>`, `<value>` | Sets a variable. | `engine setvar coordinates 0 0` |
+| `engine` | `updatevar` | `<var name>`, `<value>` | Updates the value of a variable. | `engine updatevar coordinates 1920 1080` |
+| `engine` | `deletevar` | `<var name>` | Deletes a variable. | `engine deletevar coordinates` |
+
+### Functions (WIP)
+Functions act as repeatable blocks of instructions that can be called later. Like variables, these must be defined before any manipulation happens. Specifically, functions should be defined right after variables.
+
+| Input | Action | Arguments | Description | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| `engine` | `setfunction` | `<name>` | Starts a repeatable block. | `engine setfunction newfunction` |
+| `engine` | `endfunction` | `None` | Ends an engine setfunction block. | `engine endfunction` |
+
+
+#### Function calling (WIP)
+Once a function is defined, it can be called later throughout the script with a call instruction.
+
+| Input | Action | Arguments | Description | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| `engine` | `callfunction` | `<name>` | Calls a function. | `engine callfunction newfunction` |
 
 ### Example Script
 ```text
