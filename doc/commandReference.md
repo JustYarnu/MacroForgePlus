@@ -1,7 +1,7 @@
 # Command Reference
 This documentation goes over command syntax and how to utilize this in a script using an example.
 
-Note: Scripts are case-sensitive.   
+Note: Scripts are case-insensitive.   
 
 ## Command Syntax
 `<input> <wait> <time> <action> <arguments>`
@@ -13,7 +13,7 @@ Note: Scripts are case-sensitive.
 - `<arguments>`: Parameters given to the action.
 
 ### Using the Wait Modifier
-Because your `InputController` explicitly supports static and randomized delayed actions (e.g., `MouseDelayedButtonDown`, `RandomDelayedKeyboardKeyPress`), the optional `wait` parameter can take either a static number or a random interval:
+Because `InputController` explicitly supports static and randomized delayed actions (e.g., `MouseDelayedButtonDown`, `RandomDelayedKeyboardKeyPress`), the optional `wait` parameter can take either a static number or a random interval:
 * **Static Delay:** `wait 500` (Pauses for exactly 500ms before executing the action)
 * **Randomized Delay:** `wait R[100,500]` (Pauses for a random time between 100ms and 500ms before executing the action)
 
@@ -23,12 +23,12 @@ Because your `InputController` explicitly supports static and randomized delayed
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
-| `mouse` | `move` | `<x> <y>` | Moves the cursor to the absolute screen coordinates. | `mouse move 1920 1080` |
+| `mouse` | `move` / `moveto` | `<x> <y>` | Moves the cursor to the absolute screen coordinates. | `mouse move 1920 1080` |
 | `mouse` | `moveby` | `<x> <y>` | Moves the cursor relative to its current position. | `mouse moveby 50 -50` |
 | `mouse` | `scroll` | `<direction> <clicks>` | Scrolls the mouse wheel in the given direction. | `mouse scroll down 3` |
-| `mouse` | `down` | `<button>` | Holds down the specified mouse button. | `mouse down left` |
-| `mouse` | `up` | `<button>` | Releases the specified mouse button. | `mouse up left` |
-| `mouse` | `press` | `<button>` | Clicks (presses and releases) the specified mouse button. | `mouse press right` |
+| `mouse` | `down` / `hold` | `<button>` | Holds down the specified mouse button. | `mouse hold left` |
+| `mouse` | `up` / `release` | `<button>` | Releases the specified mouse button. | `mouse release left` |
+| `mouse` | `press` / `click` | `<button>` | Clicks (presses and releases) the specified mouse button. | `mouse click right` |
 
 **Mouse Examples with Wait:**
 * `mouse wait 500 press left` *(Translates to: `DelayedMouseButtonPress`)*
@@ -38,17 +38,13 @@ Because your `InputController` explicitly supports static and randomized delayed
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
-| `keyboard` | `down` | `<key>` | Holds down the specified key. | `keyboard down shift` |
-| `keyboard` | `up` | `<key>` | Releases the specified key. | `keyboard up shift` |
-| `keyboard` | `press` | `<key>` | Presses and releases the specified key. | `keyboard press enter` |
+| `keyboard` | `down` / `hold` | `<key>` | Holds down the specified key. | `keyboard hold shift` |
+| `keyboard` | `up` / `release` | `<key>` | Releases the specified key. | `keyboard release shift` |
+| `keyboard` | `press` / `tap` | `<key>` | Presses and releases the specified key. | `keyboard tap enter` |
 | `keyboard` | `combo` | `<modifier> <key>` | Holds a modifier, taps a key, and releases the modifier. | `keyboard combo control c` |
 | `keyboard` | `type` | `<text>` | Types out a sequence of keys automatically. | `keyboard type hello world` |
 
-**Keyboard Examples with Wait:**
-* `keyboard wait 1000 press space` *(Translates to: `KeyboardDelayedKeyPress`)*
-* `keyboard wait R[50,150] press tab` *(Translates to: `RandomDelayedKeyboardKeyPress`)*
-
-### Standalone Commands
+### Engine Commands
 
 While most actions are tied to a specific input device, the controller also supports independent execution delays.
 
@@ -58,6 +54,24 @@ While most actions are tied to a specific input device, the controller also supp
 | `engine` | `wait` | `R[<min>,<max>]` | Pauses the script for a randomized amount of time (ms). | `engine wait R[500,1500]` |
 
 *(Note: `engine` is used here as a placeholder for the `<input>` field to satisfy the strict syntax requirements for standalone thread delays).*
+
+### Control structure (WIP)
+| Input | Action | Arguments | Description | Example |
+| :--- | :--- | :--- | :--- | :--- |  
+| `keyboard` | `ifheld` | `<key>` | Starts a block that is executed if a certain key is held (only supports A-Z and modifier keys). | `keyboard ifheld a` |
+| `keyboard` | `endif` | `None` | Ends a keyboard ifheld block. | `keyboard endif` |
+| `mouse` | `ifheld` | `<button>` | Starts a block that is executed if a certain mouse button is held. | `mouse ifheld left` |
+| `mouse` | `endif` | `None` | Ends a mouse ifheld block. | Mouse endif. |
+| `engine` | `ifon` | `<toggle key>` | Starts a block that is executed if a toggle key is toggled on. | `engine ifon capslock` |
+| `engine` | `ifoff` | `<toggle key>` | Starts a block that is executed if a toggle key is toggled off. | `engine ifoff capslock` |
+| `engine` | `endif` | `None` | Ends an engine ifon or ifonn block | `engine endif` |
+
+### Loops (WIP)
+| Input | Action | Arguments | Description | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| `engine` | `repeat` | `<count>` | Starts a block that repeats <count> amount of times. | `engine repeat 4` |
+| `engine` | `endrepeat` | `None` | Ends an engine repeat block. | `engine endrepeat` |
+
 
 ### Example Script
 ```text

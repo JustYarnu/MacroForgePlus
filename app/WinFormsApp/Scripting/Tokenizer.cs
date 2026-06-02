@@ -95,6 +95,7 @@ public class ScriptParser
         switch (action)
         {
             case "move":
+            case "moveto":
             case "moveby":
                 int x = int.Parse(tokens[index++]);
                 int y = int.Parse(tokens[index++]);
@@ -106,10 +107,22 @@ public class ScriptParser
                 return new MouseScrollCommand(direction, clicks); 
 
             case "down":
+            case "hold":
             case "up":
+            case "release":
             case "press":
+            case "click":
                 var button = Enum.Parse<ButtonCode>(tokens[index++], true);
-                var buttonAction = Enum.Parse<ButtonAction>(action, true);
+                var buttonAction = action switch
+                {
+                    "down" => ButtonAction.Down,
+                    "hold" => ButtonAction.Down,
+                    "up" => ButtonAction.Up,
+                    "release" => ButtonAction.Up,
+                    "press" => ButtonAction.Press,
+                    "click" => ButtonAction.Press,
+                    _ => Enum.Parse<ButtonAction>(action, true)
+                };
                 return new MouseButtonCommand(button, buttonAction);
 
             default:
@@ -122,10 +135,22 @@ public class ScriptParser
         switch (action)
         {
             case "down":
+            case "hold":
             case "up":
+            case "release":
             case "press":
+            case "tap":
                 var key = Enum.Parse<KeyCode>(tokens[index++], true);
-                var keyAction = Enum.Parse<KeyAction>(action, true);
+                var keyAction = action switch
+                {
+                    "down" => KeyAction.Down,
+                    "hold" => KeyAction.Down,
+                    "up" => KeyAction.Up,
+                    "release" => KeyAction.Up,
+                    "press" => KeyAction.Press,
+                    "tap" => KeyAction.Press,
+                    _ => Enum.Parse<KeyAction>(action, true)
+                };
                 return new KeyboardCommand(key, keyAction);
 
             case "combo":
