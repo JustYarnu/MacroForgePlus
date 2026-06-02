@@ -1,1 +1,3 @@
-![Project logo](assets/Logo_small.svg)
+<p align="center">
+  <img src="assets/Logo_small.svg" width="200" />
+</p>
