@@ -74,6 +74,7 @@ public class InputController
     
     public void KeyboardModifiedStroke(KeyCode modifier, KeyCode key) => keyboard.ModifiedStroke(modifier, key);
     
+    public void KeyboardTypeText(string text) => keyboard.TypeText(text);
     public void KeyboardTypeText(KeyCode[] text) => keyboard.TypeText(text);
 
     public void KeyboardDelayedKeyPress(KeyCode key, int delay)

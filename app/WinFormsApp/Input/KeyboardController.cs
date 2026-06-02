@@ -1,3 +1,4 @@
+using System.Threading;
 using WindowsInput;
 using WindowsInput.Events;
 
@@ -19,12 +20,24 @@ public class KeyboardController
     }
 
 
-    public void TypeText(KeyCode[] text)
+    public void TypeText(string text)
     {
-        foreach(KeyCode key in text)
+        foreach (char c in text)
         {
-            KeyPress(key);
+            Simulate.Events().Click(c).Invoke();
+            Thread.Sleep(30);
         }
+    }
+
+    public void TypeText(KeyCode[] keys)
+    {
+        var eventSimulator = Simulate.Events();
+        foreach (KeyCode key in keys)
+        {
+            eventSimulator.Click(key);
+            Thread.Sleep(30);
+        }
+        eventSimulator.Invoke();
     }
 
     // Handles combinations like Ctrl+C

@@ -4,39 +4,32 @@ using WindowsInput.Events;
 public class KeyboardTypeTextCommand : IMacroCommand
 {
     public KeyCode[] TextKeys { get; }
+    public string TextString { get; }
 
-    // Standard constructor for pre-mapped arrays
+    // Standard constructor for pre-mapped arrays (special key combinations)
     public KeyboardTypeTextCommand(KeyCode[] textKeys)
     {
         TextKeys = textKeys;
+        TextString = null;
     }
 
-    // Helper constructor to quickly convert strings like "HELLO" into KeyCodes
+    // Constructor for direct string input - uses WindowsInput's built-in text typing
     public KeyboardTypeTextCommand(string text)
     {
-        var keys = new List<KeyCode>();
-        
-        foreach (char c in text.ToUpper())
-        {
-            // Simple mapping example, actual parser utility might need a more robust dictionary
-            if (Enum.TryParse($"VK_{c}", out KeyCode parsedKey))
-            {
-                keys.Add(parsedKey);
-            }
-            else if (c == ' ')
-            {
-                keys.Add(KeyCode.Space);
-            }
-        }
-
-        TextKeys = keys.ToArray();
+        TextString = text;
+        TextKeys = null;
     }
 
     public void Execute(InputController controller)
     {
-        // Guard against null arrays
-        if (TextKeys != null && TextKeys.Length > 0)
+        if (!string.IsNullOrEmpty(TextString))
         {
+            // Use direct string input for proper text typing
+            controller.KeyboardTypeText(TextString);
+        }
+        else if (TextKeys != null && TextKeys.Length > 0)
+        {
+            // Use KeyCode array for special key combinations
             controller.KeyboardTypeText(TextKeys);
         }
     }

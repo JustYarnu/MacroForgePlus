@@ -9,7 +9,7 @@ class Program
         Console.WriteLine("Test Script Initialized");
 
         // dummy macro script
-        string testScript = @"
+        /*string testScript = @"
             # Move mouse slightly and click to focus the window
             mouse move 500 500
             mouse wait R[50,150] press left
@@ -23,7 +23,12 @@ class Program
 
             # Test a randomized delay before another action
             keyboard wait R[200,600] type testing r interval syntax...
-        ";
+        ";*/
+
+        string testScript = @"
+            # Type speed test
+            keyboard type This is a typing speed test for the macro engine. It should type at around 200WPM with high consistency. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            ";
 
         var controller = new InputController();
         var parser = new ScriptParser();
