@@ -86,30 +86,41 @@ The wait command serves as the action in the command syntax.
 | `engine` | `repeat` | `<count>` | Starts a block that repeats <count> amount of times. | `engine repeat 4` |
 | `engine` | `endrepeat` | `None` | Ends an engine repeat block. | `engine endrepeat` |
 
-### Variables (WIP)
-The engine also supports variables. Setting variables must always happen on top of the script, before any manipulation starts.
+### Variables
+Variables must be declared before any executable commands. Once set, you can reference them later using `${name}` or `$name` in command arguments and text.
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
-| `engine` | `setvar` | `<var name>`, `<value>` | Sets a variable. | `engine setvar coordinates 0 0` |
-| `engine` | `updatevar` | `<var name>`, `<value>` | Updates the value of a variable. | `engine updatevar coordinates 1920 1080` |
-| `engine` | `deletevar` | `<var name>` | Deletes a variable. | `engine deletevar coordinates` |
+| `engine` | `setvar` | `<var name> <value>` | Sets a variable. | `engine setvar greeting hello world` |
+| `engine` | `updatevar` | `<var name> <value>` | Updates the value of an existing variable. | `engine updatevar greeting hello again` |
+| `engine` | `deletevar` | `<var name>` | Deletes a variable. | `engine deletevar greeting` |
 
-### Functions (WIP)
-Functions act as repeatable blocks of instructions that can be called later. Like variables, these must be defined before any manipulation happens. Specifically, functions should be defined right after variables.
+**Variable examples:**
+* `keyboard type ${greeting}`
+* `mouse move ${x} ${y}`
+* `keyboard type hello $name`
 
-| Input | Action | Arguments | Description | Example |
-| :--- | :--- | :--- | :--- | :--- |
-| `engine` | `setfunction` | `<name>` | Starts a repeatable block. | `engine setfunction newfunction` |
-| `engine` | `endfunction` | `None` | Ends an engine setfunction block. | `engine endfunction` |
-
-
-#### Function calling (WIP)
-Once a function is defined, it can be called later throughout the script with a call instruction.
+### Functions
+Functions act as named, reusable blocks of commands. Like variables, functions must be declared before executable commands begin. Function definitions may be grouped together after variables and before the main script flow.
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
-| `engine` | `callfunction` | `<name>` | Calls a function. | `engine callfunction newfunction` |
+| `engine` | `setfunction` | `<name>` | Starts a named function block. | `engine setfunction greet` |
+| `engine` | `endfunction` | `None` | Ends a function definition block. | `engine endfunction` |
+
+#### Calling a function
+Once a function is defined, it can be invoked later in the script with a function call.
+
+| Input | Action | Arguments | Description | Example |
+| :--- | :--- | :--- | :--- | :--- |
+| `engine` | `callfunction` | `<name>` | Executes the specified function block. | `engine callfunction greet` |
+
+**Function example:**
+* `engine setfunction greet`
+* `    keyboard type Hello from a function`
+* `    keyboard wait 200 press enter`
+* `engine endfunction`
+* `engine callfunction greet`
 
 ### Example Script
 ```text

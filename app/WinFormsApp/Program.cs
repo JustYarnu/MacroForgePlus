@@ -26,32 +26,69 @@ class Program
         ";*/
 
         string testScript = @"
-            # Initial delay for setup
-            engine wait 1000
+            # Variables must be declared before any executable commands.
+            engine setvar greeting Hello from the macro script
+            engine setvar x 500
+            engine setvar y 300
+            engine setvar repeatCount 2
+            engine setvar comboKey v
+            engine updatevar greeting Hello from variables
+            engine deletevar comboKey
 
-            # Basic keyboard typing and once-off delay
-            keyboard type hello from the macro script
+            # Function definitions must appear before the main flow.
+            engine setfunction greet
+                keyboard type ${greeting}
+                keyboard wait 150 press enter
+            engine endfunction
+
+            engine setfunction clickAndReturn
+                mouse move ${x} ${y}
+                mouse wait 100 press left
+                mouse moveby -100 0
+            engine endfunction
+
+            engine setfunction roundTrip
+                mouse move 100 100
+                mouse wait 100 moveby 50 50
+                mouse wait 100 moveby -50 -50
+            engine endfunction
+
+            # Begin main script. This section exercises all documented features.
+            keyboard type ***START SCRIPT***
             keyboard wait 200 press enter
 
-            # Loop block for repeat support
-            engine repeat 2
-                keyboard type repeated output line
-                keyboard wait 150 press enter
+            engine callfunction greet
+
+            mouse move 500 500
+            mouse wait 200 press left
+            mouse wait 150 press right
+
+            mouse moveby 80 0
+            mouse wait 150 scroll down 2
+            mouse wait R[50,120] scroll up 1
+
+            mouse hold left
+            engine wait 100
+            mouse release left
+
+            keyboard hold shift
+            engine wait 100
+            keyboard release shift
+
+            keyboard press a
+            keyboard tap b
+            keyboard combo ctrl c
+            keyboard combo control v
+            keyboard type Text after combo
+
+            engine wait R[200,400]
+            engine callfunction clickAndReturn
+
+            engine repeat ${repeatCount}
+                keyboard type loop iteration ${repeatCount}
+                keyboard wait 100 press enter
             engine endrepeat
 
-            # Keyboard conditional block: hold shift to execute
-            keyboard ifheld shift
-                keyboard type shift is held
-                keyboard wait 150 press enter
-            keyboard endif
-
-            # Mouse conditional block: hold left mouse button to execute
-            mouse ifheld left
-                keyboard type left mouse button is held
-                keyboard wait 150 press enter
-            mouse endif
-
-            # Toggle conditionals for capslock state
             engine ifon capslock
                 keyboard type capslock is on
                 keyboard wait 150 press enter
@@ -62,13 +99,20 @@ class Program
                 keyboard wait 150 press enter
             engine endif
 
-            # Nested repeat inside a toggle conditional
-            engine ifon numlock
-                engine repeat 2
-                    keyboard type nested repeat under numlock
-                    keyboard wait 150 press enter
-                engine endrepeat
-            engine endif
+            keyboard ifheld shift
+                keyboard type shift key still held block
+                keyboard wait 150 press enter
+            keyboard endif
+
+            mouse ifheld left
+                keyboard type left mouse button still held block
+                keyboard wait 150 press enter
+            mouse endif
+
+            engine callfunction roundTrip
+
+            keyboard type ***END SCRIPT***
+            keyboard wait 200 press enter
         ";
 
         var controller = new InputController();

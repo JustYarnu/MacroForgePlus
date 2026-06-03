@@ -10,13 +10,16 @@ public class ScriptParser
         var rootCommands = new List<IMacroCommand>();
         var blockStack = new Stack<BlockContext>();
         blockStack.Push(new BlockContext(rootCommands));
+        var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var functions = new Dictionary<string, List<IMacroCommand>>(StringComparer.OrdinalIgnoreCase);
+        bool variablesSectionEnded = false;
+        bool functionSectionEnded = false;
 
         var lines = scriptText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
         for (int i = 0; i < lines.Length; i++)
         {
-            // 1. Normalize the line (Lowercase and Trim)
-            string trimmedLine = lines[i].Trim().ToLowerInvariant();
+            string trimmedLine = lines[i].Trim();
 
             // Skip comments and empty lines
             if (trimmedLine.StartsWith("#") || string.IsNullOrWhiteSpace(trimmedLine))
@@ -31,19 +34,30 @@ public class ScriptParser
                 int currentIndex = 0;
 
                 // 3. Read the Target Input (mouse, keyboard, engine)
-                string inputTarget = tokens[currentIndex++];
+                string inputTarget = tokens[currentIndex++].ToLowerInvariant();
 
                 // 4. Check for the optional "wait" modifier
-                if (currentIndex < tokens.Length && tokens[currentIndex] == "wait")
+                if (currentIndex < tokens.Length && tokens[currentIndex].ToLowerInvariant() == "wait")
                 {
                     currentIndex++; // Consume 'wait'
-                    string timeArg = tokens[currentIndex++]; // e.g., "1000" or "r[50,120]"
+                    string timeArg = ResolveToken(tokens[currentIndex++], variables);
 
                     blockStack.Peek().Commands.Add(ParseWaitToken(timeArg));
                 }
 
+                if (currentIndex >= tokens.Length)
+                {
+                    if (variablesSectionEnded == false && IsVariableDirective(inputTarget, string.Empty))
+                        throw new FormatException("Variable directive requires an action.");
+
+                    variablesSectionEnded = true;
+                    if (blockStack.Peek().Kind == BlockKind.Root)
+                        functionSectionEnded = true;
+                    continue;
+                }
+
                 // If this is a block terminator, close the latest block
-                if (currentIndex < tokens.Length && tokens[currentIndex] == "endif")
+                if (currentIndex < tokens.Length && tokens[currentIndex].ToLowerInvariant() == "endif")
                 {
                     currentIndex++;
                     if (blockStack.Count == 1)
@@ -54,11 +68,8 @@ public class ScriptParser
                     continue;
                 }
 
-                if (currentIndex >= tokens.Length)
-                    continue;
-
                 // 5. Read the Action and Arguments
-                string action = tokens[currentIndex++];
+                string action = tokens[currentIndex++].ToLowerInvariant();
 
                 if (action == "endif")
                 {
@@ -70,6 +81,7 @@ public class ScriptParser
                         throw new FormatException("Found 'endif' closing a non-conditional block.");
 
                     blockStack.Peek().Commands.Add(new ConditionalCommand(completedBlock.Condition!, completedBlock.Commands));
+                    variablesSectionEnded = true;
                     continue;
                 }
 
@@ -83,30 +95,107 @@ public class ScriptParser
                         throw new FormatException("Found 'endrepeat' closing a non-repeat block.");
 
                     blockStack.Peek().Commands.Add(new LoopCommand(completedBlock.RepeatCount, completedBlock.Commands));
+                    variablesSectionEnded = true;
+                    continue;
+                }
+
+                if (action == "endfunction")
+                {
+                    if (blockStack.Count == 1)
+                        throw new FormatException("Found 'endfunction' without a matching function start.");
+
+                    var completedBlock = blockStack.Pop();
+                    if (completedBlock.Kind != BlockKind.Function)
+                        throw new FormatException("Found 'endfunction' closing a non-function block.");
+
+                    if (functions.ContainsKey(completedBlock.FunctionName!))
+                        throw new FormatException($"Function '{completedBlock.FunctionName}' is already defined.");
+
+                    functions[completedBlock.FunctionName!] = completedBlock.Commands;
+                    variablesSectionEnded = true;
+                    continue;
+                }
+
+                if (IsVariableDirective(inputTarget, action))
+                {
+                    if (variablesSectionEnded)
+                        throw new FormatException("Variable declarations must occur before any executable commands.");
+
+                    ParseVariableDirective(action, tokens, ref currentIndex, variables);
+                    continue;
+                }
+
+                variablesSectionEnded = true;
+
+                if (IsFunctionStart(inputTarget, action))
+                {
+                    if (blockStack.Peek().Kind != BlockKind.Root)
+                        throw new FormatException("Function definitions may only be declared at the root of the script.");
+
+                    if (functionSectionEnded)
+                        throw new FormatException("Function definitions must occur before executable commands.");
+
+                    if (currentIndex >= tokens.Length)
+                        throw new FormatException("setfunction requires a function name.");
+
+                    string functionName = ResolveToken(tokens[currentIndex++], variables).ToLowerInvariant();
+                    if (string.IsNullOrWhiteSpace(functionName))
+                        throw new FormatException("Function name cannot be empty.");
+
+                    blockStack.Push(new BlockContext(functionName, new List<IMacroCommand>()));
+                    continue;
+                }
+
+                if (IsFunctionCall(inputTarget, action))
+                {
+                    if (currentIndex >= tokens.Length)
+                        throw new FormatException("callfunction requires a function name.");
+
+                    string functionName = ResolveToken(tokens[currentIndex++], variables).ToLowerInvariant();
+                    if (!functions.TryGetValue(functionName, out var functionCommands))
+                        throw new FormatException($"Function '{functionName}' is not defined.");
+
+                    if (blockStack.Peek().Kind == BlockKind.Root)
+                        functionSectionEnded = true;
+
+                    blockStack.Peek().Commands.Add(new FunctionCallCommand(functionName, functionCommands));
                     continue;
                 }
 
                 if (IsConditionalStart(inputTarget, action))
                 {
-                    var condition = ParseConditional(inputTarget, action, tokens, ref currentIndex);
+                    if (blockStack.Peek().Kind == BlockKind.Root)
+                        functionSectionEnded = true;
+
+                    var conditionArg = ResolveToken(tokens[currentIndex++], variables);
+                    var condition = ParseConditional(inputTarget, action, conditionArg);
                     blockStack.Push(new BlockContext(condition, new List<IMacroCommand>()));
                     continue;
                 }
 
                 if (IsLoopStart(inputTarget, action))
                 {
-                    int repeatCount = ParseRepeatCount(tokens, ref currentIndex);
+                    if (blockStack.Peek().Kind == BlockKind.Root)
+                        functionSectionEnded = true;
+
+                    int repeatCount = ParseRepeatCount(tokens, ref currentIndex, variables);
                     blockStack.Push(new BlockContext(repeatCount, new List<IMacroCommand>()));
                     continue;
                 }
 
                 if (inputTarget == "mouse")
                 {
-                    blockStack.Peek().Commands.Add(ParseMouseAction(action, tokens, ref currentIndex));
+                    if (blockStack.Peek().Kind == BlockKind.Root)
+                        functionSectionEnded = true;
+
+                    blockStack.Peek().Commands.Add(ParseMouseAction(action, tokens, ref currentIndex, variables));
                 }
                 else if (inputTarget == "keyboard")
                 {
-                    blockStack.Peek().Commands.Add(ParseKeyboardAction(action, tokens, ref currentIndex));
+                    if (blockStack.Peek().Kind == BlockKind.Root)
+                        functionSectionEnded = true;
+
+                    blockStack.Peek().Commands.Add(ParseKeyboardAction(action, tokens, ref currentIndex, variables));
                 }
                 else if (inputTarget == "engine")
                 {
@@ -136,16 +225,123 @@ public class ScriptParser
         => action == "ifheld" && (inputTarget == "keyboard" || inputTarget == "mouse")
            || inputTarget == "engine" && (action == "ifon" || action == "ifoff");
 
+    private static bool IsVariableDirective(string inputTarget, string action)
+        => inputTarget == "engine" && (action == "setvar" || action == "updatevar" || action == "deletevar");
+
+    private static bool IsFunctionDirective(string inputTarget, string action)
+        => inputTarget == "engine" && action == "setfunction";
+
+    private static void ParseVariableDirective(string action, string[] tokens, ref int index, Dictionary<string, string> variables)
+    {
+        if (index >= tokens.Length)
+            throw new FormatException($"'{action}' requires a variable name.");
+
+        string variableName = tokens[index++].ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(variableName))
+            throw new FormatException("Variable name cannot be empty.");
+
+        switch (action)
+        {
+            case "setvar":
+                if (index >= tokens.Length)
+                    throw new FormatException("setvar requires a value.");
+
+                string setValue = string.Join(" ", tokens, index, tokens.Length - index);
+                variables[variableName] = setValue;
+                break;
+
+            case "updatevar":
+                if (!variables.ContainsKey(variableName))
+                    throw new FormatException($"Variable '{variableName}' does not exist.");
+
+                if (index >= tokens.Length)
+                    throw new FormatException("updatevar requires a value.");
+
+                string updateValue = string.Join(" ", tokens, index, tokens.Length - index);
+                variables[variableName] = updateValue;
+                break;
+
+            case "deletevar":
+                variables.Remove(variableName);
+                break;
+
+            default:
+                throw new FormatException($"Unknown variable directive: '{action}'");
+        }
+    }
+
+    private static string ResolveToken(string token, Dictionary<string, string> variables)
+    {
+        if (string.IsNullOrEmpty(token))
+            return token;
+
+        if (token.StartsWith("$") && token.Length > 1 && token[1] != '{')
+        {
+            string lookupName = token.Substring(1);
+            if (!variables.TryGetValue(lookupName, out var value))
+                throw new FormatException($"Variable '{lookupName}' is not defined.");
+
+            return value;
+        }
+
+        return ResolveVariableExpressions(token, variables);
+    }
+
+    private static string ResolveTextValue(string text, Dictionary<string, string> variables)
+    {
+        return ResolveVariableExpressions(text, variables);
+    }
+
+    private static string ResolveVariableExpressions(string text, Dictionary<string, string> variables)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains("${"))
+            return text;
+
+        int index = 0;
+        var builder = new System.Text.StringBuilder();
+
+        while (index < text.Length)
+        {
+            int start = text.IndexOf("${", index, StringComparison.Ordinal);
+            if (start == -1)
+            {
+                builder.Append(text[index..]);
+                break;
+            }
+
+            builder.Append(text[index..start]);
+            int end = text.IndexOf('}', start + 2);
+            if (end == -1)
+                throw new FormatException("Variable expression is not terminated with '}'.");
+
+            string variableName = text[(start + 2)..end];
+            if (!variables.TryGetValue(variableName, out var value))
+                throw new FormatException($"Variable '{variableName}' is not defined.");
+
+            builder.Append(value);
+            index = end + 1;
+        }
+
+        return builder.ToString();
+    }
+
+    private static bool IsFunctionStart(string inputTarget, string action)
+        => inputTarget == "engine" && action == "setfunction";
+
+    private static bool IsFunctionCall(string inputTarget, string action)
+        => inputTarget == "engine" && action == "callfunction";
+
     private static bool IsLoopStart(string inputTarget, string action)
         => inputTarget == "engine" && action == "repeat";
 
-    private static int ParseRepeatCount(string[] tokens, ref int index)
+    private static int ParseRepeatCount(string[] tokens, ref int index, Dictionary<string, string> variables)
     {
         if (index >= tokens.Length)
             throw new FormatException("Repeat requires a count.");
 
-        if (!int.TryParse(tokens[index++], out int count))
-            throw new FormatException($"Repeat count '{tokens[index - 1]}' is not a valid integer.");
+        string countToken = ResolveToken(tokens[index++], variables);
+        if (!int.TryParse(countToken, out int count))
+            throw new FormatException($"Repeat count '{countToken}' is not a valid integer.");
 
         if (count < 0)
             throw new FormatException("Repeat count must be zero or greater.");
@@ -153,12 +349,8 @@ public class ScriptParser
         return count;
     }
 
-    private static Func<InputController, bool> ParseConditional(string inputTarget, string action, string[] tokens, ref int index)
+    private static Func<InputController, bool> ParseConditional(string inputTarget, string action, string conditionArg)
     {
-        if (index >= tokens.Length)
-            throw new FormatException($"Conditional '{action}' requires an argument.");
-
-        string conditionArg = tokens[index++];
 
         if (action == "ifheld")
         {
@@ -214,23 +406,32 @@ public class ScriptParser
             RepeatCount = repeatCount;
             Commands = commands;
         }
+
+        public BlockContext(string functionName, List<IMacroCommand> commands)
+        {
+            Kind = BlockKind.Function;
+            FunctionName = functionName;
+            Commands = commands;
+        }
+
+        public string? FunctionName { get; }
     }
 
     private enum BlockKind
     {
         Root,
         Conditional,
-        Loop
+        Loop,
+        Function
     }
 
     // --- R[min,max] logic ---
     private WaitCommand ParseWaitToken(string timeArg)
     {
         // Check if it's the randomized format: r[min,max]
-        if (timeArg.StartsWith("r["))
+        if (timeArg.StartsWith("r[", StringComparison.OrdinalIgnoreCase))
         {
-            // Strip the 'r', '[', and ']' characters
-            string inner = timeArg.Trim('r', '[', ']');
+            string inner = timeArg.Substring(2).Trim('[', ']');
             var parts = inner.Split(',');
 
             if (parts.Length != 2)
@@ -239,25 +440,26 @@ public class ScriptParser
             return new WaitCommand(int.Parse(parts[0]), int.Parse(parts[1]));
         }
         
-        // Otherwise, it's a static static delay
+        // Otherwise, it's a static delay
         return new WaitCommand(int.Parse(timeArg));
     }
 
-    private IMacroCommand ParseMouseAction(string action, string[] tokens, ref int index)
+    private IMacroCommand ParseMouseAction(string action, string[] tokens, ref int index, Dictionary<string, string> variables)
     {
         switch (action)
         {
             case "move":
             case "moveto":
             case "moveby":
-                int x = int.Parse(tokens[index++]);
-                int y = int.Parse(tokens[index++]);
+                int x = int.Parse(ResolveToken(tokens[index++], variables));
+                int y = int.Parse(ResolveToken(tokens[index++], variables));
                 return new MouseMoveCommand(x, y, isRelative: action == "moveby");
 
             case "scroll":
-                var direction = Enum.Parse<ButtonCode>(tokens[index++], true);
-                int clicks = int.Parse(tokens[index++]);
-                return new MouseScrollCommand(direction, clicks); 
+                var directionToken = ResolveToken(tokens[index++], variables);
+                int clicks = int.Parse(ResolveToken(tokens[index++], variables));
+                var (direction, normalizedClicks) = ParseScrollDirection(directionToken, clicks);
+                return new MouseScrollCommand(direction, normalizedClicks);
 
             case "down":
             case "hold":
@@ -265,7 +467,7 @@ public class ScriptParser
             case "release":
             case "press":
             case "click":
-                var button = Enum.Parse<ButtonCode>(tokens[index++], true);
+                var button = Enum.Parse<ButtonCode>(ResolveToken(tokens[index++], variables), true);
                 var buttonAction = action switch
                 {
                     "down" => ButtonAction.Down,
@@ -281,6 +483,23 @@ public class ScriptParser
             default:
                 throw new FormatException($"Unknown mouse action: {action}");
         }
+    }
+
+    private static (ButtonCode direction, int clicks) ParseScrollDirection(string token, int clicks)
+    {
+        var normalized = token.ToLowerInvariant();
+        return normalized switch
+        {
+            "up" => (ButtonCode.VScroll, -Math.Abs(clicks)),
+            "down" => (ButtonCode.VScroll, Math.Abs(clicks)),
+            "left" => (ButtonCode.HScroll, -Math.Abs(clicks)),
+            "right" => (ButtonCode.HScroll, Math.Abs(clicks)),
+            "vscroll" => (ButtonCode.VScroll, clicks),
+            "hscroll" => (ButtonCode.HScroll, clicks),
+            "scroll" => (ButtonCode.VScroll, clicks),
+            _ when Enum.TryParse<ButtonCode>(token, true, out var direction) => (direction, clicks),
+            _ => throw new FormatException($"Unknown scroll direction: '{token}'")
+        };
     }
 
     private static KeyCode ParseKeyCode(string token)
@@ -300,7 +519,7 @@ public class ScriptParser
         };
     }
 
-    private IMacroCommand ParseKeyboardAction(string action, string[] tokens, ref int index)
+    private IMacroCommand ParseKeyboardAction(string action, string[] tokens, ref int index, Dictionary<string, string> variables)
     {
         switch (action)
         {
@@ -310,7 +529,7 @@ public class ScriptParser
             case "release":
             case "press":
             case "tap":
-                var key = ParseKeyCode(tokens[index++]);
+                var key = ParseKeyCode(ResolveToken(tokens[index++], variables));
                 var keyAction = action switch
                 {
                     "down" => KeyAction.Down,
@@ -324,13 +543,13 @@ public class ScriptParser
                 return new KeyboardCommand(key, keyAction);
 
             case "combo":
-                var modifier = ParseKeyCode(tokens[index++]);
-                var targetKey = ParseKeyCode(tokens[index++]);
+                var modifier = ParseKeyCode(ResolveToken(tokens[index++], variables));
+                var targetKey = ParseKeyCode(ResolveToken(tokens[index++], variables));
                 return new KeyboardComboCommand(modifier, targetKey);
 
             case "type":
                 // Join all remaining tokens back together for the string typing
-                string textToType = string.Join(" ", tokens, index, tokens.Length - index);
+                string textToType = ResolveTextValue(string.Join(" ", tokens, index, tokens.Length - index), variables);
                 index = tokens.Length; // Fast-forward index to the end
                 return new KeyboardTypeTextCommand(textToType);
 
