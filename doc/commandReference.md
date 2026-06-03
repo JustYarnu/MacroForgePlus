@@ -47,7 +47,7 @@ The engine can make use of modifier keys, because these don't correspond to a sy
 * `mouse wait 500 press left` *(Translates to: `DelayedMouseButtonPress`)*
 * `mouse wait R[100,300] down right` *(Translates to: `RandomDelayedMouseButtonDown`)*
 
-### Keyboard Commands (Testing)
+### Keyboard Commands
 
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
@@ -57,7 +57,7 @@ The engine can make use of modifier keys, because these don't correspond to a sy
 | `keyboard` | `combo` | `<modifier> <key>` | Holds a modifier, taps a key, and releases the modifier. | `keyboard combo ctrl c` |
 | `keyboard` | `type` | `<text>` | Types out a sequence of keys automatically. | `keyboard type hello world` |
 
-### Engine Commands (Testing)
+### Engine Commands
 
 While most actions are tied to a specific input device, the controller also supports independent execution delays.
 The wait command serves as the action in the command syntax.
