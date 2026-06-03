@@ -28,6 +28,7 @@ public class ExecutionEngine
                 {
                     token.ThrowIfCancellationRequested();
 
+                    Console.WriteLine($"Executing {command.GetType().Name}");
                     command.Execute(_controller);
                 }
             }

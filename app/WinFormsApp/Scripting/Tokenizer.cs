@@ -7,7 +7,10 @@ public class ScriptParser
 {
     public List<IMacroCommand> ParseScript(string scriptText)
     {
-        var commands = new List<IMacroCommand>();
+        var rootCommands = new List<IMacroCommand>();
+        var blockStack = new Stack<BlockContext>();
+        blockStack.Push(new BlockContext(rootCommands));
+
         var lines = scriptText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
         for (int i = 0; i < lines.Length; i++)
@@ -26,7 +29,7 @@ public class ScriptParser
             try
             {
                 int currentIndex = 0;
-                
+
                 // 3. Read the Target Input (mouse, keyboard, engine)
                 string inputTarget = tokens[currentIndex++];
 
@@ -35,25 +38,82 @@ public class ScriptParser
                 {
                     currentIndex++; // Consume 'wait'
                     string timeArg = tokens[currentIndex++]; // e.g., "1000" or "r[50,120]"
-                    
-                    // Add the wait command immediately before the action
-                    commands.Add(ParseWaitToken(timeArg)); 
+
+                    blockStack.Peek().Commands.Add(ParseWaitToken(timeArg));
                 }
 
-                // If the target was just "engine" (e.g. engine wait 1000), we are done with this line
-                if (inputTarget == "engine")
+                // If this is a block terminator, close the latest block
+                if (currentIndex < tokens.Length && tokens[currentIndex] == "endif")
+                {
+                    currentIndex++;
+                    if (blockStack.Count == 1)
+                        throw new FormatException("Found 'endif' without a matching conditional start.");
+
+                    var completedBlock = blockStack.Pop();
+                    blockStack.Peek().Commands.Add(new ConditionalCommand(completedBlock.Condition!, completedBlock.Commands));
+                    continue;
+                }
+
+                if (currentIndex >= tokens.Length)
                     continue;
 
                 // 5. Read the Action and Arguments
                 string action = tokens[currentIndex++];
-                
+
+                if (action == "endif")
+                {
+                    if (blockStack.Count == 1)
+                        throw new FormatException("Found 'endif' without a matching conditional start.");
+
+                    var completedBlock = blockStack.Pop();
+                    if (completedBlock.Kind != BlockKind.Conditional)
+                        throw new FormatException("Found 'endif' closing a non-conditional block.");
+
+                    blockStack.Peek().Commands.Add(new ConditionalCommand(completedBlock.Condition!, completedBlock.Commands));
+                    continue;
+                }
+
+                if (action == "endrepeat")
+                {
+                    if (blockStack.Count == 1)
+                        throw new FormatException("Found 'endrepeat' without a matching repeat start.");
+
+                    var completedBlock = blockStack.Pop();
+                    if (completedBlock.Kind != BlockKind.Loop)
+                        throw new FormatException("Found 'endrepeat' closing a non-repeat block.");
+
+                    blockStack.Peek().Commands.Add(new LoopCommand(completedBlock.RepeatCount, completedBlock.Commands));
+                    continue;
+                }
+
+                if (IsConditionalStart(inputTarget, action))
+                {
+                    var condition = ParseConditional(inputTarget, action, tokens, ref currentIndex);
+                    blockStack.Push(new BlockContext(condition, new List<IMacroCommand>()));
+                    continue;
+                }
+
+                if (IsLoopStart(inputTarget, action))
+                {
+                    int repeatCount = ParseRepeatCount(tokens, ref currentIndex);
+                    blockStack.Push(new BlockContext(repeatCount, new List<IMacroCommand>()));
+                    continue;
+                }
+
                 if (inputTarget == "mouse")
                 {
-                    commands.Add(ParseMouseAction(action, tokens, ref currentIndex));
+                    blockStack.Peek().Commands.Add(ParseMouseAction(action, tokens, ref currentIndex));
                 }
                 else if (inputTarget == "keyboard")
                 {
-                    commands.Add(ParseKeyboardAction(action, tokens, ref currentIndex));
+                    blockStack.Peek().Commands.Add(ParseKeyboardAction(action, tokens, ref currentIndex));
+                }
+                else if (inputTarget == "engine")
+                {
+                    if (action != "wait")
+                        throw new FormatException($"Unknown engine action: '{action}'");
+
+                    // engine wait is already handled by the optional wait modifier
                 }
                 else
                 {
@@ -62,12 +122,105 @@ public class ScriptParser
             }
             catch (Exception ex)
             {
-                // Attach the line number so the user knows exactly where their script broke
                 throw new FormatException($"Error parsing script on line {i + 1}: '{trimmedLine}'. Details: {ex.Message}");
             }
         }
 
-        return commands;
+        if (blockStack.Count != 1)
+            throw new FormatException("Unclosed conditional block detected in script.");
+
+        return rootCommands;
+    }
+
+    private static bool IsConditionalStart(string inputTarget, string action)
+        => action == "ifheld" && (inputTarget == "keyboard" || inputTarget == "mouse")
+           || inputTarget == "engine" && (action == "ifon" || action == "ifoff");
+
+    private static bool IsLoopStart(string inputTarget, string action)
+        => inputTarget == "engine" && action == "repeat";
+
+    private static int ParseRepeatCount(string[] tokens, ref int index)
+    {
+        if (index >= tokens.Length)
+            throw new FormatException("Repeat requires a count.");
+
+        if (!int.TryParse(tokens[index++], out int count))
+            throw new FormatException($"Repeat count '{tokens[index - 1]}' is not a valid integer.");
+
+        if (count < 0)
+            throw new FormatException("Repeat count must be zero or greater.");
+
+        return count;
+    }
+
+    private static Func<InputController, bool> ParseConditional(string inputTarget, string action, string[] tokens, ref int index)
+    {
+        if (index >= tokens.Length)
+            throw new FormatException($"Conditional '{action}' requires an argument.");
+
+        string conditionArg = tokens[index++];
+
+        if (action == "ifheld")
+        {
+            if (inputTarget == "keyboard")
+            {
+                var key = ParseKeyCode(conditionArg);
+                return controller => controller.IsKeyHeld(key);
+            }
+
+            if (inputTarget == "mouse")
+            {
+                var button = Enum.Parse<ButtonCode>(conditionArg, true);
+                return controller => controller.IsButtonHeld(button);
+            }
+        }
+
+        if (inputTarget == "engine")
+        {
+            return action switch
+            {
+                "ifon" => controller => controller.IsToggleOn(conditionArg),
+                "ifoff" => controller => controller.IsToggleOff(conditionArg),
+                _ => throw new FormatException($"Unknown engine conditional action: '{action}'")
+            };
+        }
+
+        throw new FormatException($"Unsupported conditional action: '{inputTarget} {action}'");
+    }
+
+    private sealed class BlockContext
+    {
+        public BlockKind Kind { get; }
+        public Func<InputController, bool>? Condition { get; }
+        public int RepeatCount { get; }
+        public List<IMacroCommand> Commands { get; }
+
+        public BlockContext(List<IMacroCommand> commands)
+        {
+            Kind = BlockKind.Root;
+            Commands = commands;
+        }
+
+        public BlockContext(Func<InputController, bool> condition, List<IMacroCommand> commands)
+        {
+            Kind = BlockKind.Conditional;
+            Condition = condition;
+            Commands = commands;
+        }
+
+        public BlockContext(int repeatCount, List<IMacroCommand> commands)
+        {
+            Kind = BlockKind.Loop;
+            RepeatCount = repeatCount;
+            Commands = commands;
+        }
+    }
+
+    private enum BlockKind
+    {
+        Root,
+        Conditional,
+        Loop
     }
 
     // --- R[min,max] logic ---
@@ -130,6 +283,23 @@ public class ScriptParser
         }
     }
 
+    private static KeyCode ParseKeyCode(string token)
+    {
+        return token.ToLowerInvariant() switch
+        {
+            "ctrl" => KeyCode.Control,
+            "control" => KeyCode.Control,
+            "shift" => KeyCode.Shift,
+            "alt" => KeyCode.Alt,
+            "oskey" => KeyCode.LWin,
+            "altgr" => KeyCode.RAlt,
+            "capslock" => KeyCode.CapsLock,
+            "numlock" => KeyCode.NumLock,
+            "scrolllock" => KeyCode.Scroll,
+            _ => Enum.Parse<KeyCode>(token, true)
+        };
+    }
+
     private IMacroCommand ParseKeyboardAction(string action, string[] tokens, ref int index)
     {
         switch (action)
@@ -140,7 +310,7 @@ public class ScriptParser
             case "release":
             case "press":
             case "tap":
-                var key = Enum.Parse<KeyCode>(tokens[index++], true);
+                var key = ParseKeyCode(tokens[index++]);
                 var keyAction = action switch
                 {
                     "down" => KeyAction.Down,
@@ -154,8 +324,8 @@ public class ScriptParser
                 return new KeyboardCommand(key, keyAction);
 
             case "combo":
-                var modifier = Enum.Parse<KeyCode>(tokens[index++], true);
-                var targetKey = Enum.Parse<KeyCode>(tokens[index++], true);
+                var modifier = ParseKeyCode(tokens[index++]);
+                var targetKey = ParseKeyCode(tokens[index++]);
                 return new KeyboardComboCommand(modifier, targetKey);
 
             case "type":

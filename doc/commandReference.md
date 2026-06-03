@@ -17,6 +17,19 @@ Because `InputController` explicitly supports static and randomized delayed acti
 * **Static Delay:** `wait 500` (Pauses for exactly 500ms before executing the action)
 * **Randomized Delay:** `wait R[100,500]` (Pauses for a random time between 100ms and 500ms before executing the action)
 
+## Modifier keys
+The engine can make use of modifier keys, because these don't correspond to a symbol, the engine uses its own mapping to map a modifier key to a `string`.
+
+| Modifier Key | String |
+| :--- | :--- |
+| Shift | `shift` |
+| Control | `ctrl` |
+| Alt | `alt` |
+| Meta/Windows/Super/Command | `oskey` |
+| AltGr | `altgr` |
+| Capslock | `capslock` |
+| NumLock | `numlock` |
+| ScrollLock | `scrolllock` | 
 ## List of Commands
 
 ### Mouse Commands (Testing)
@@ -41,7 +54,7 @@ Because `InputController` explicitly supports static and randomized delayed acti
 | `keyboard` | `down` / `hold` | `<key>` | Holds down the specified key. | `keyboard hold shift` |
 | `keyboard` | `up` / `release` | `<key>` | Releases the specified key. | `keyboard release shift` |
 | `keyboard` | `press` / `tap` | `<key>` | Presses and releases the specified key. | `keyboard tap enter` |
-| `keyboard` | `combo` | `<modifier> <key>` | Holds a modifier, taps a key, and releases the modifier. | `keyboard combo control c` |
+| `keyboard` | `combo` | `<modifier> <key>` | Holds a modifier, taps a key, and releases the modifier. | `keyboard combo ctrl c` |
 | `keyboard` | `type` | `<text>` | Types out a sequence of keys automatically. | `keyboard type hello world` |
 
 ### Engine Commands (Testing)
@@ -56,8 +69,8 @@ The wait command serves as the action in the command syntax.
 
 *(Note: `engine` is used here as a placeholder for the `<input>` field to satisfy the strict syntax requirements for standalone thread delays).*
 
-### Control structure (WIP)
-| Input | Action | Arguments | Description | Example |
+### Control structure
+| Input | Action | Arguments | Description | Example | 
 | :--- | :--- | :--- | :--- | :--- |  
 | `keyboard` | `ifheld` | `<key>` | Starts a block that is executed if a certain key is held (only supports A-Z and modifier keys). | `keyboard ifheld a` |
 | `keyboard` | `endif` | `None` | Ends a keyboard ifheld block. | `keyboard endif` |
@@ -65,9 +78,9 @@ The wait command serves as the action in the command syntax.
 | `mouse` | `endif` | `None` | Ends a mouse ifheld block. | `mouse endif` |
 | `engine` | `ifon` | `<toggle key>` | Starts a block that is executed if a toggle key is toggled on. | `engine ifon capslock` |
 | `engine` | `ifoff` | `<toggle key>` | Starts a block that is executed if a toggle key is toggled off. | `engine ifoff capslock` |
-| `engine` | `endif` | `None` | Ends an engine ifon or ifonn block | `engine endif` |
+| `engine` | `endif` | `None` | Ends an engine ifon or ifoff block | `engine endif` |
 
-### Loops (WIP)
+### Loops
 | Input | Action | Arguments | Description | Example |
 | :--- | :--- | :--- | :--- | :--- |
 | `engine` | `repeat` | `<count>` | Starts a block that repeats <count> amount of times. | `engine repeat 4` |
@@ -110,4 +123,4 @@ engine wait 1000
 keyboard type hello world
 
 # Execute a delayed copy command
-keyboard wait 500 combo control c
+keyboard wait 500 combo ctrl c

@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 using WindowsInput.Events;
 
 public class InputController
@@ -88,4 +90,44 @@ public class InputController
         RandomWait(lowerBound, upperBound);
         KeyboardKeyPress(key);
     }
+
+    public bool IsKeyHeld(KeyCode key)
+        => IsVirtualKeyDown((int)key);
+
+    public bool IsButtonHeld(ButtonCode button)
+        => IsVirtualKeyDown(GetVirtualKeyFromButton(button));
+
+    public bool IsToggleOn(string toggleName)
+    {
+        if (toggleName is null)
+            throw new ArgumentNullException(nameof(toggleName));
+
+        return toggleName.ToLowerInvariant() switch
+        {
+            "capslock" => Control.IsKeyLocked(Keys.CapsLock),
+            "numlock" => Control.IsKeyLocked(Keys.NumLock),
+            "scrolllock" => Control.IsKeyLocked(Keys.Scroll),
+            _ => throw new ArgumentException($"Unknown toggle key: '{toggleName}'", nameof(toggleName))
+        };
+    }
+
+    public bool IsToggleOff(string toggleName)
+        => !IsToggleOn(toggleName);
+
+    private static bool IsVirtualKeyDown(int virtualKey)
+        => (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
+
+    private static int GetVirtualKeyFromButton(ButtonCode button)
+        => button switch
+        {
+            ButtonCode.Left => 0x01,
+            ButtonCode.Right => 0x02,
+            ButtonCode.Middle => 0x04,
+            ButtonCode.XButton1 => 0x05,
+            ButtonCode.XButton2 => 0x06,
+            _ => throw new ArgumentException($"Unsupported mouse button for condition: '{button}'", nameof(button))
+        };
+
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int vKey);
 }
