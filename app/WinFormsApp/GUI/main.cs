@@ -58,4 +58,16 @@ public partial class Main : Form
                 MessageBoxIcon.Information);
         }
     }
+
+    private void RunMacroButton_Click(object? sender, EventArgs e)
+    {
+        // Basic functionality - just show a message for now
+        // Domain-specific logic (running the macro) will be implemented later
+        MessageBox.Show(
+            "Macro running functionality will be implemented soon!\n\n" +
+            "For now, try opening a macro file first using the 'Open Macro' panel.",
+            "Run Macro",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
 }
