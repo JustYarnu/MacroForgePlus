@@ -47,6 +47,7 @@ partial class ScriptEditor
         // lineNumbersPanel
         // 
         this.lineNumbersPanel.BackColor = System.Drawing.Color.FromArgb(35, 35, 38);
+        this.lineNumbersPanel.Controls.Add(this.lineNumbersLabel);
         this.lineNumbersPanel.Dock = System.Windows.Forms.DockStyle.Left;
         this.lineNumbersPanel.Location = new System.Drawing.Point(0, 0);
         this.lineNumbersPanel.Name = "lineNumbersPanel";
@@ -55,13 +56,13 @@ partial class ScriptEditor
         // 
         // lineNumbersLabel
         // 
-        this.lineNumbersLabel.AutoSize = true;
-        this.lineNumbersLabel.Dock = System.Windows.Forms.DockStyle.Left;
+        this.lineNumbersLabel.AutoSize = false;
+        this.lineNumbersLabel.Dock = System.Windows.Forms.DockStyle.None;
         this.lineNumbersLabel.Font = new System.Drawing.Font("Consolas", 10F);
         this.lineNumbersLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
         this.lineNumbersLabel.Location = new System.Drawing.Point(0, 0);
         this.lineNumbersLabel.Name = "lineNumbersLabel";
-        this.lineNumbersLabel.Size = new System.Drawing.Size(15, 17);
+        this.lineNumbersLabel.Size = new System.Drawing.Size(50, 406);
         this.lineNumbersLabel.TabIndex = 1;
         this.lineNumbersLabel.Text = "1";
         // 
@@ -79,6 +80,7 @@ partial class ScriptEditor
         this.scriptTextBox.Text = "";
         this.scriptTextBox.WordWrap = false;
         this.scriptTextBox.TextChanged += new System.EventHandler(this.ScriptTextBox_TextChanged);
+        this.scriptTextBox.VScroll += new System.EventHandler(this.ScriptTextBox_VScroll);
         // 
         // editorPanel
         // 
