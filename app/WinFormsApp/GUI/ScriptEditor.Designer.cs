@@ -1,3 +1,5 @@
+﻿using System.Windows.Forms.Integration;
+
 namespace WinFormsApp.GUI;
 
 partial class ScriptEditor
@@ -28,9 +30,7 @@ partial class ScriptEditor
     /// </summary>
     private void InitializeComponent()
     {
-        this.lineNumbersPanel = new System.Windows.Forms.Panel();
-        this.lineNumbersLabel = new System.Windows.Forms.Label();
-        this.scriptTextBox = new System.Windows.Forms.RichTextBox();
+        this.elementHost1 = new ElementHost();
         this.editorPanel = new System.Windows.Forms.Panel();
         this.menuStrip = new System.Windows.Forms.MenuStrip();
         this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,48 +44,19 @@ partial class ScriptEditor
         this.editorPanel.SuspendLayout();
         this.SuspendLayout();
         // 
-        // lineNumbersPanel
+        // elementHost1
         // 
-        this.lineNumbersPanel.BackColor = System.Drawing.Color.FromArgb(35, 35, 38);
-        this.lineNumbersPanel.Controls.Add(this.lineNumbersLabel);
-        this.lineNumbersPanel.Dock = System.Windows.Forms.DockStyle.Left;
-        this.lineNumbersPanel.Location = new System.Drawing.Point(0, 0);
-        this.lineNumbersPanel.Name = "lineNumbersPanel";
-        this.lineNumbersPanel.Size = new System.Drawing.Size(50, 406);
-        this.lineNumbersPanel.TabIndex = 0;
-        // 
-        // lineNumbersLabel
-        // 
-        this.lineNumbersLabel.AutoSize = false;
-        this.lineNumbersLabel.Dock = System.Windows.Forms.DockStyle.None;
-        this.lineNumbersLabel.Font = new System.Drawing.Font("Consolas", 10F);
-        this.lineNumbersLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
-        this.lineNumbersLabel.Location = new System.Drawing.Point(0, 0);
-        this.lineNumbersLabel.Name = "lineNumbersLabel";
-        this.lineNumbersLabel.Size = new System.Drawing.Size(50, 406);
-        this.lineNumbersLabel.TabIndex = 1;
-        this.lineNumbersLabel.Text = "1";
-        // 
-        // scriptTextBox
-        // 
-        this.scriptTextBox.BackColor = System.Drawing.Color.FromArgb(25, 25, 25);
-        this.scriptTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-        this.scriptTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-        this.scriptTextBox.Font = new System.Drawing.Font("Consolas", 10F);
-        this.scriptTextBox.ForeColor = System.Drawing.Color.FromArgb(200, 200, 200);
-        this.scriptTextBox.Location = new System.Drawing.Point(50, 0);
-        this.scriptTextBox.Name = "scriptTextBox";
-        this.scriptTextBox.Size = new System.Drawing.Size(734, 406);
-        this.scriptTextBox.TabIndex = 2;
-        this.scriptTextBox.Text = "";
-        this.scriptTextBox.WordWrap = false;
-        this.scriptTextBox.TextChanged += new System.EventHandler(this.ScriptTextBox_TextChanged);
-        this.scriptTextBox.VScroll += new System.EventHandler(this.ScriptTextBox_VScroll);
+        this.elementHost1.Dock = System.Windows.Forms.DockStyle.Fill;
+        this.elementHost1.Location = new System.Drawing.Point(0, 0);
+        this.elementHost1.Name = "elementHost1";
+        this.elementHost1.Size = new System.Drawing.Size(784, 406);
+        this.elementHost1.TabIndex = 0;
+        this.elementHost1.Text = "elementHost1";
+        this.elementHost1.Child = null;
         // 
         // editorPanel
         // 
-        this.editorPanel.Controls.Add(this.scriptTextBox);
-        this.editorPanel.Controls.Add(this.lineNumbersPanel);
+        this.editorPanel.Controls.Add(this.elementHost1);
         this.editorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
         this.editorPanel.Location = new System.Drawing.Point(0, 24);
         this.editorPanel.Name = "editorPanel";
@@ -175,16 +146,13 @@ partial class ScriptEditor
         this.menuStrip.ResumeLayout(false);
         this.menuStrip.PerformLayout();
         this.editorPanel.ResumeLayout(false);
-        this.editorPanel.PerformLayout();
         this.ResumeLayout(false);
         this.PerformLayout();
     }
 
     #endregion
 
-    private System.Windows.Forms.Panel lineNumbersPanel;
-    private System.Windows.Forms.Label lineNumbersLabel;
-    private System.Windows.Forms.RichTextBox scriptTextBox;
+    private ElementHost elementHost1;
     private System.Windows.Forms.Panel editorPanel;
     private System.Windows.Forms.MenuStrip menuStrip;
     private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;

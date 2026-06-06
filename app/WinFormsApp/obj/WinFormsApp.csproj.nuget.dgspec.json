@@ -44,6 +44,10 @@
         "net10.0-windows7.0": {
           "targetAlias": "net10.0-windows",
           "dependencies": {
+            "AvalonEdit": {
+              "target": "Package",
+              "version": "[6.3.1.120, )"
+            },
             "WindowsInput": {
               "target": "Package",
               "version": "[6.4.1, )"
