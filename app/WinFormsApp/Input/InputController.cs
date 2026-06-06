@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -6,9 +7,34 @@ using WindowsInput.Events;
 
 public class InputController
 {
-    private MouseController mouse;
-    private KeyboardController keyboard;
-    private Random rnd;
+    private readonly MouseController mouse;
+    private readonly KeyboardController keyboard;
+    private readonly Random rnd;
+
+    private readonly object _stateLock = new object();
+    private bool _autoRandomize;
+    private bool _abortButton;
+    private bool _inputBuffering;
+    private PhysicalInputBlockMode _blockPhysicalInputMode;
+
+    private BlockingCollection<Action>? _actionQueue;
+    private Thread? _bufferThread;
+    private CancellationToken? _bufferCancellationToken;
+    private readonly ManualResetEventSlim _bufferIdle = new(true);
+
+    public bool AutoRandomize
+    {
+        get => _autoRandomize;
+        set => _autoRandomize = value;
+    }
+
+    public bool AbortButton
+    {
+        get => _abortButton;
+        set => _abortButton = value;
+    }
+
+    public bool InputBuffering => _inputBuffering;
 
     public InputController()
     {
@@ -17,78 +43,178 @@ public class InputController
         rnd = new Random();
     }
     
+    public void BeginBuffering(CancellationToken token)
+    {
+        if (_inputBuffering)
+            return;
+
+        _inputBuffering = true;
+        _bufferCancellationToken = token;
+        _actionQueue = new BlockingCollection<Action>();
+        _bufferIdle.Set();
+
+        _bufferThread = new Thread(ProcessBufferedActions)
+        {
+            IsBackground = true,
+            Name = "InputBufferWorker"
+        };
+        _bufferThread.Start();
+    }
+
+    public void EndBuffering()
+    {
+        if (!_inputBuffering)
+            return;
+
+        if (_actionQueue != null)
+            _actionQueue.CompleteAdding();
+
+        _bufferThread?.Join(5000);
+        _actionQueue = null;
+        _bufferThread = null;
+        _bufferCancellationToken = null;
+        _inputBuffering = false;
+        _bufferIdle.Set();
+    }
+
+    public void FlushBuffer(CancellationToken token)
+    {
+        if (!_inputBuffering)
+            return;
+
+        _bufferIdle.Wait(token);
+    }
+
+    public void SetBlockPhysicalInput(PhysicalInputBlockMode mode)
+    {
+        if (_blockPhysicalInputMode == mode)
+            return;
+
+        if (_blockPhysicalInputMode != PhysicalInputBlockMode.None)
+            SetPhysicalInputBlocked(false);
+
+        _blockPhysicalInputMode = mode;
+
+        if (mode != PhysicalInputBlockMode.None)
+            SetPhysicalInputBlocked(true);
+    }
+
     public void Wait(int delay)
     {
-        Thread.Sleep(delay);
+        ExecuteOrQueue(() => SleepWithAbort(delay));
     }
 
     public void RandomWait(int lowerBound, int upperBound)
     {
-        if (lowerBound > upperBound) (lowerBound, upperBound) = (upperBound, lowerBound);
-        Thread.Sleep(rnd.Next(lowerBound, upperBound + 1));
+        if (lowerBound > upperBound)
+            (lowerBound, upperBound) = (upperBound, lowerBound);
+
+        ExecuteOrQueue(() => SleepWithAbort(rnd.Next(lowerBound, upperBound + 1)));
     }
 
-    public void MouseMoveTo(int x, int y) => mouse.MoveTo(x, y);
-    public void MouseMoveBy(int x, int y) => mouse.MoveBy(x, y);
-    public void MouseScroll(ButtonCode direction, int clicks) => mouse.Scroll(direction, clicks);
+    public void MouseMoveTo(int x, int y) => PerformAction(() => mouse.MoveTo(x, y));
+    public void MouseMoveBy(int x, int y) => PerformAction(() => mouse.MoveBy(x, y));
+    public void MouseScroll(ButtonCode direction, int clicks) => PerformAction(() => mouse.Scroll(direction, clicks));
 
-    public void MouseButtonDown(ButtonCode button) => mouse.ButtonDown(button);
-    public void MouseButtonUp(ButtonCode button) => mouse.ButtonUp(button);
-    public void MouseButtonPress(ButtonCode button) => mouse.ButtonPress(button);
+    public void MouseButtonDown(ButtonCode button) => PerformAction(() => mouse.ButtonDown(button));
+    public void MouseButtonUp(ButtonCode button) => PerformAction(() => mouse.ButtonUp(button));
+    public void MouseButtonPress(ButtonCode button) => PerformAction(() => mouse.ButtonPress(button));
+
     public void MouseDelayedButtonDown(ButtonCode button, int delay)
     {
-        Thread.Sleep(delay);
-        MouseButtonDown(button);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(delay);
+            mouse.ButtonDown(button);
+        });
     }
 
     public void RandomDelayedMouseButtonDown(ButtonCode button, int lowerBound, int upperBound)
     {
-        RandomWait(lowerBound, upperBound);
-        MouseButtonDown(button);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(rnd.Next(lowerBound, upperBound + 1));
+            mouse.ButtonDown(button);
+        });
     }
 
     public void MouseDelayedButtonUp(ButtonCode button, int delay)
     {
-        Thread.Sleep(delay);
-        MouseButtonUp(button);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(delay);
+            mouse.ButtonUp(button);
+        });
     }
 
     public void RandomDelayedMouseButtonUp(ButtonCode button, int lowerBound, int upperBound)
     {
-        RandomWait(lowerBound, upperBound);
-        MouseButtonUp(button);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(rnd.Next(lowerBound, upperBound + 1));
+            mouse.ButtonUp(button);
+        });
     }
 
     public void DelayedMouseButtonPress(ButtonCode button, int delay)
     {
-        Thread.Sleep(delay);
-        MouseButtonPress(button);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(delay);
+            mouse.ButtonPress(button);
+        });
     }
     
     public void RandomDelayedMouseButtonPress(ButtonCode button, int lowerBound, int upperBound)
     {
-        RandomWait(lowerBound, upperBound);
-        MouseButtonPress(button);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(rnd.Next(lowerBound, upperBound + 1));
+            mouse.ButtonPress(button);
+        });
     }
-    public void KeyboardKeyDown(KeyCode key) => keyboard.KeyDown(key);
-    public void KeyboardKeyUp(KeyCode key) => keyboard.KeyUp(key);
-    public void KeyboardKeyPress(KeyCode key) => keyboard.KeyPress(key);
+
+    public void KeyboardKeyDown(KeyCode key) => PerformAction(() => keyboard.KeyDown(key));
+    public void KeyboardKeyUp(KeyCode key) => PerformAction(() => keyboard.KeyUp(key));
+    public void KeyboardKeyPress(KeyCode key) => PerformAction(() => keyboard.KeyPress(key));
     
-    public void KeyboardModifiedStroke(KeyCode modifier, KeyCode key) => keyboard.ModifiedStroke(modifier, key);
+    public void KeyboardModifiedStroke(KeyCode modifier, KeyCode key) => PerformAction(() => keyboard.ModifiedStroke(modifier, key));
     
-    public void KeyboardTypeText(string text) => keyboard.TypeText(text);
-    public void KeyboardTypeText(KeyCode[] text) => keyboard.TypeText(text);
+    public void KeyboardTypeText(string text) => PerformAction(() => keyboard.TypeText(text));
+    public void KeyboardTypeText(KeyCode[] text) => PerformAction(() => keyboard.TypeText(text));
 
     public void KeyboardDelayedKeyPress(KeyCode key, int delay)
     {
-        Thread.Sleep(delay);
-        KeyboardKeyPress(key);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(delay);
+            keyboard.KeyPress(key);
+        });
     }
 
     public void RandomDelayedKeyboardKeyPress(KeyCode key, int lowerBound, int upperBound)
     {
-        RandomWait(lowerBound, upperBound);
-        KeyboardKeyPress(key);
+        ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            SleepWithAbort(rnd.Next(lowerBound, upperBound + 1));
+            keyboard.KeyPress(key);
+        });
     }
 
     public bool IsKeyHeld(KeyCode key)
@@ -114,6 +240,95 @@ public class InputController
     public bool IsToggleOff(string toggleName)
         => !IsToggleOn(toggleName);
 
+    public bool IsAbortPressed()
+        => IsVirtualKeyDown((int)Keys.Escape);
+
+    private void PerformAction(Action action)
+        => ExecuteOrQueue(() =>
+        {
+            MaybeAbort();
+            MaybeAutoRandomize();
+            action();
+        });
+
+    private void ExecuteOrQueue(Action action)
+    {
+        MaybeAbort();
+
+        if (_inputBuffering && _actionQueue != null)
+        {
+            _bufferIdle.Reset();
+            _actionQueue.Add(action);
+            return;
+        }
+
+        action();
+    }
+
+    private void ProcessBufferedActions()
+    {
+        if (_actionQueue == null)
+            return;
+
+        try
+        {
+            foreach (var action in _actionQueue.GetConsumingEnumerable(_bufferCancellationToken ?? CancellationToken.None))
+            {
+                try
+                {
+                    action();
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch
+                {
+                    // Allow the engine to handle exceptions and stop processing on errors.
+                    break;
+                }
+
+                if (_actionQueue.Count == 0)
+                    _bufferIdle.Set();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation has been requested.
+        }
+        finally
+        {
+            _bufferIdle.Set();
+        }
+    }
+
+    private void MaybeAutoRandomize()
+    {
+        if (!_autoRandomize)
+            return;
+
+        Thread.Sleep(rnd.Next(10, 31));
+    }
+
+    private void MaybeAbort()
+    {
+        if (_abortButton && IsAbortPressed())
+            throw new OperationCanceledException();
+    }
+
+    private void SleepWithAbort(int milliseconds)
+    {
+        var remaining = milliseconds;
+        const int slice = 50;
+
+        while (remaining > 0)
+        {
+            MaybeAbort();
+            Thread.Sleep(Math.Min(slice, remaining));
+            remaining -= slice;
+        }
+    }
+
     private static bool IsVirtualKeyDown(int virtualKey)
         => (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
 
@@ -127,6 +342,16 @@ public class InputController
             ButtonCode.XButton2 => 0x06,
             _ => throw new ArgumentException($"Unsupported mouse button for condition: '{button}'", nameof(button))
         };
+
+    private void SetPhysicalInputBlocked(bool block)
+    {
+        if (!BlockInput(block))
+            throw new InvalidOperationException($"Unable to {(block ? "enable" : "disable")} physical input blocking.");
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool BlockInput(bool fBlockIt);
 
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);

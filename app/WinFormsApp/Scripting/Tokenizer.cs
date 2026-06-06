@@ -5,12 +5,12 @@ using WindowsInput.Events;
 
 public class ScriptParser
 {
-    public List<IMacroCommand> ParseScript(string scriptText)
+    public ParsedScript ParseScript(string scriptText)
     {
-        var rootCommands = new List<IMacroCommand>();
+        var parsedScript = new ParsedScript();
         var blockStack = new Stack<BlockContext>();
-        blockStack.Push(new BlockContext(rootCommands));
-        var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        blockStack.Push(new BlockContext(parsedScript.Commands));
+        var variables = parsedScript.Variables;
         var functions = new Dictionary<string, List<IMacroCommand>>(StringComparer.OrdinalIgnoreCase);
         bool variablesSectionEnded = false;
         bool functionSectionEnded = false;
@@ -121,7 +121,7 @@ public class ScriptParser
                     if (variablesSectionEnded)
                         throw new FormatException("Variable declarations must occur before any executable commands.");
 
-                    ParseVariableDirective(action, tokens, ref currentIndex, variables);
+                    ParseVariableDirective(action, tokens, ref currentIndex, variables, parsedScript.Options);
                     continue;
                 }
 
@@ -218,7 +218,7 @@ public class ScriptParser
         if (blockStack.Count != 1)
             throw new FormatException("Unclosed conditional block detected in script.");
 
-        return rootCommands;
+        return parsedScript;
     }
 
     private static bool IsConditionalStart(string inputTarget, string action)
@@ -231,7 +231,7 @@ public class ScriptParser
     private static bool IsFunctionDirective(string inputTarget, string action)
         => inputTarget == "engine" && action == "setfunction";
 
-    private static void ParseVariableDirective(string action, string[] tokens, ref int index, Dictionary<string, string> variables)
+    private static void ParseVariableDirective(string action, string[] tokens, ref int index, Dictionary<string, string> variables, ScriptOptions options)
     {
         if (index >= tokens.Length)
             throw new FormatException($"'{action}' requires a variable name.");
@@ -243,15 +243,32 @@ public class ScriptParser
         switch (action)
         {
             case "setvar":
+            {
+                string setValue;
                 if (index >= tokens.Length)
-                    throw new FormatException("setvar requires a value.");
+                {
+                    if (IsEngineOptionName(variableName))
+                    {
+                        setValue = "true";
+                    }
+                    else
+                    {
+                        throw new FormatException("setvar requires a value.");
+                    }
+                }
+                else
+                {
+                    setValue = string.Join(" ", tokens, index, tokens.Length - index);
+                }
 
-                string setValue = string.Join(" ", tokens, index, tokens.Length - index);
                 variables[variableName] = setValue;
+                ApplyEngineOption(variableName, setValue, options);
                 break;
+            }
 
             case "updatevar":
-                if (!variables.ContainsKey(variableName))
+            {
+                if (!variables.ContainsKey(variableName) && !IsEngineOptionName(variableName))
                     throw new FormatException($"Variable '{variableName}' does not exist.");
 
                 if (index >= tokens.Length)
@@ -259,11 +276,16 @@ public class ScriptParser
 
                 string updateValue = string.Join(" ", tokens, index, tokens.Length - index);
                 variables[variableName] = updateValue;
+                ApplyEngineOption(variableName, updateValue, options);
                 break;
+            }
 
             case "deletevar":
+            {
                 variables.Remove(variableName);
+                ResetEngineOption(variableName, options);
                 break;
+            }
 
             default:
                 throw new FormatException($"Unknown variable directive: '{action}'");
@@ -557,4 +579,126 @@ public class ScriptParser
                 throw new FormatException($"Unknown keyboard action: {action}");
         }
     }
+
+    private static bool IsEngineOptionName(string name)
+        => name.Equals("autorandomize", StringComparison.OrdinalIgnoreCase)
+           || name.Equals("blockphysicalinput", StringComparison.OrdinalIgnoreCase)
+           || name.Equals("abortbutton", StringComparison.OrdinalIgnoreCase)
+           || name.Equals("repeatindefinitely", StringComparison.OrdinalIgnoreCase)
+           || name.Equals("inputbuffering", StringComparison.OrdinalIgnoreCase);
+
+    private static void ApplyEngineOption(string name, string value, ScriptOptions options)
+    {
+        switch (name.ToLowerInvariant())
+        {
+            case "autorandomize":
+                options.AutoRandomize = ParseBooleanValue(value);
+                break;
+            case "abortbutton":
+                options.AbortButton = ParseBooleanValue(value);
+                break;
+            case "inputbuffering":
+                options.InputBuffering = ParseBooleanValue(value);
+                break;
+            case "blockphysicalinput":
+                options.BlockPhysicalInput = value.ToLowerInvariant() switch
+                {
+                    "true" => PhysicalInputBlockMode.Both,
+                    "both" => PhysicalInputBlockMode.Both,
+                    "mouse" => PhysicalInputBlockMode.Mouse,
+                    "keyboard" => PhysicalInputBlockMode.Keyboard,
+                    _ => throw new FormatException($"Invalid blockphysicalinput value: '{value}'")
+                };
+                break;
+            case "repeatindefinitely":
+                if (string.Equals(value, "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.RepeatMode = RepeatMode.Infinite;
+                }
+                else if (string.Equals(value, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.RepeatMode = RepeatMode.None;
+                }
+                else
+                {
+                    var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length != 2 || !string.Equals(parts[0], "interval", StringComparison.OrdinalIgnoreCase) || !int.TryParse(parts[1], out var intervalMinutes) || intervalMinutes < 0)
+                        throw new FormatException($"repeatindefinitely must be 'true', 'false', or 'interval <min>'. Got '{value}'.");
+
+                    options.RepeatMode = RepeatMode.Interval;
+                    options.RepeatIntervalMinutes = intervalMinutes;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static void ResetEngineOption(string name, ScriptOptions options)
+    {
+        switch (name.ToLowerInvariant())
+        {
+            case "autorandomize":
+                options.AutoRandomize = false;
+                break;
+            case "abortbutton":
+                options.AbortButton = false;
+                break;
+            case "inputbuffering":
+                options.InputBuffering = false;
+                break;
+            case "blockphysicalinput":
+                options.BlockPhysicalInput = PhysicalInputBlockMode.None;
+                break;
+            case "repeatindefinitely":
+                options.RepeatMode = RepeatMode.None;
+                options.RepeatIntervalMinutes = 0;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static bool ParseBooleanValue(string value)
+    {
+        if (string.Equals(value, "true", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (string.Equals(value, "false", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        throw new FormatException($"Invalid boolean value: '{value}'. Expected 'true' or 'false'.");
+    }
+}
+
+public class ParsedScript
+{
+    public List<IMacroCommand> Commands { get; } = new List<IMacroCommand>();
+    public Dictionary<string, string> Variables { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public ScriptOptions Options { get; } = new ScriptOptions();
+}
+
+public class ScriptOptions
+{
+    public bool AutoRandomize { get; set; }
+    public bool InputBuffering { get; set; }
+    public bool AbortButton { get; set; }
+    public PhysicalInputBlockMode BlockPhysicalInput { get; set; } = PhysicalInputBlockMode.None;
+    public RepeatMode RepeatMode { get; set; } = RepeatMode.None;
+    public int RepeatIntervalMinutes { get; set; }
+}
+
+public enum RepeatMode
+{
+    None,
+    Infinite,
+    Interval
+}
+
+public enum PhysicalInputBlockMode
+{
+    None,
+    Mouse,
+    Keyboard,
+    Both
 }

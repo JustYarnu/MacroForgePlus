@@ -34,12 +34,17 @@ partial class ScriptEditor
         this.editorPanel = new System.Windows.Forms.Panel();
         this.menuStrip = new System.Windows.Forms.MenuStrip();
         this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.newScriptMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.openScriptMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
         this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.executeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.stopExecutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.menuStrip.SuspendLayout();
         this.editorPanel.SuspendLayout();
         this.SuspendLayout();
@@ -68,7 +73,9 @@ partial class ScriptEditor
         this.menuStrip.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
         this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
         this.fileToolStripMenuItem,
-        this.editToolStripMenuItem});
+        this.editToolStripMenuItem,
+        this.executeToolStripMenuItem,
+        this.stopExecutionToolStripMenuItem});
         this.menuStrip.Location = new System.Drawing.Point(0, 0);
         this.menuStrip.Name = "menuStrip";
         this.menuStrip.Size = new System.Drawing.Size(784, 24);
@@ -78,7 +85,10 @@ partial class ScriptEditor
         // fileToolStripMenuItem
         // 
         this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+        this.newScriptMenuItem,
+        this.openScriptMenuItem,
         this.saveToolStripMenuItem,
+        this.saveAsToolStripMenuItem,
         this.toolStripSeparator1,
         this.closeToolStripMenuItem});
         this.fileToolStripMenuItem.ForeColor = System.Drawing.Color.White;
@@ -86,12 +96,37 @@ partial class ScriptEditor
         this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
         this.fileToolStripMenuItem.Text = "File";
         // 
+        // newScriptMenuItem
+        // 
+        this.newScriptMenuItem.ForeColor = System.Drawing.Color.Black;
+        this.newScriptMenuItem.Name = "newScriptMenuItem";
+        this.newScriptMenuItem.Size = new System.Drawing.Size(180, 22);
+        this.newScriptMenuItem.Text = "New Script";
+        this.newScriptMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N;
+        // 
+        // openScriptMenuItem
+        // 
+        this.openScriptMenuItem.ForeColor = System.Drawing.Color.Black;
+        this.openScriptMenuItem.Name = "openScriptMenuItem";
+        this.openScriptMenuItem.Size = new System.Drawing.Size(180, 22);
+        this.openScriptMenuItem.Text = "Open Script";
+        this.openScriptMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O;
+        // 
         // saveToolStripMenuItem
         // 
         this.saveToolStripMenuItem.ForeColor = System.Drawing.Color.Black;
         this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-        this.saveToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+        this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
         this.saveToolStripMenuItem.Text = "Save";
+        this.saveToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S;
+        // 
+        // saveAsToolStripMenuItem
+        // 
+        this.saveAsToolStripMenuItem.ForeColor = System.Drawing.Color.Black;
+        this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+        this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+        this.saveAsToolStripMenuItem.Text = "Save As";
+        this.saveAsToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.S;
         // 
         // toolStripSeparator1
         // 
@@ -115,6 +150,22 @@ partial class ScriptEditor
         this.editToolStripMenuItem.Name = "editToolStripMenuItem";
         this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
         this.editToolStripMenuItem.Text = "Edit";
+        // 
+        // executeToolStripMenuItem
+        // 
+        this.executeToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+        this.executeToolStripMenuItem.Name = "executeToolStripMenuItem";
+        this.executeToolStripMenuItem.Size = new System.Drawing.Size(70, 20);
+        this.executeToolStripMenuItem.Text = "Execute";
+        this.executeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F5;
+        // 
+        // stopExecutionToolStripMenuItem
+        // 
+        this.stopExecutionToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+        this.stopExecutionToolStripMenuItem.Name = "stopExecutionToolStripMenuItem";
+        this.stopExecutionToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
+        this.stopExecutionToolStripMenuItem.Text = "Stop";
+        this.stopExecutionToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F5;
         // 
         // undoToolStripMenuItem
         // 
@@ -156,10 +207,15 @@ partial class ScriptEditor
     private System.Windows.Forms.Panel editorPanel;
     private System.Windows.Forms.MenuStrip menuStrip;
     private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem newScriptMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem openScriptMenuItem;
     private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
     private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem redoToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem executeToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem stopExecutionToolStripMenuItem;
 }

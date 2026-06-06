@@ -100,6 +100,21 @@ Variables must be declared before any executable commands. Once set, you can ref
 * `mouse move ${x} ${y}`
 * `keyboard type hello $name`
 
+### Global State Variables
+Global state variables allow you to change the behavior of the engine by setting a variable with a certain name to a specific value.
+
+| Variable | Value(s) | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `autorandomize` | `true` | Injects small, random delays (e.g., 10-30ms) between actions or mouse movements to avoid detection as mechanical input. | `engine setvar autoRandomize true` |
+| `blockphysicalinput` | `true` / `mouse` / `keyboard` | Blocks physical input during script execution. Can be set to `true` (both), `mouse`, or `keyboard` to restrict specific hardware. | `engine setvar BlockPhysicalInput mouse` |
+| `abortbutton` | `true` | If true, pressing the `Escape` key will stop the script immediately (this overrides `BlockPhysicalInput`). | `engine setvar AbortButton true` |
+| `repeatindefinitely` | `true` / `false` / `interval <min>` | If `true`, the script loops infinitely. If set to `interval <min>`, the script repeats every X minutes. | `engine setvar RepeatIndefinitely interval 60` |
+| `inputbuffering` | `true` | Enables input buffering. | `engine setvar inputbuffering` |
+
+#### Input buffering
+
+The inputbuffering flag uses a First-In-First-Out (FIFO) input buffer to ensure command stability & reliability. When the script interpreter parses a command (e.g., `mouse click left`), it is placed into the execution queue. The `ExecutionThread` continuously polls the buffer. It handles `wait` modifiers and `AutoRandomize` logic before invoking the low-level input drivers.
+
 ### Functions
 Functions act as named, reusable blocks of commands. Like variables, functions must be declared before executable commands begin. Function definitions may be grouped together after variables and before the main script flow.
 

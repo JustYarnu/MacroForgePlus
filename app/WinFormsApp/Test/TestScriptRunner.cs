@@ -107,8 +107,8 @@ internal static class TestScriptRunner
         try
         {
             Console.WriteLine("Parsing script...");
-            var commands = parser.ParseScript(testScript);
-            Console.WriteLine($"Successfully parsed {commands.Count} commands.");
+            var parsedScript = parser.ParseScript(testScript);
+            Console.WriteLine($"Successfully parsed {parsedScript.Commands.Count} commands.");
 
             Console.WriteLine("\n[PREPARATION] Open Notepad and click inside it now!");
             for (int i = 5; i > 0; i--)
@@ -118,7 +118,7 @@ internal static class TestScriptRunner
             }
 
             Console.WriteLine("\nRunning macro...");
-            await engine.RunAsync(commands);
+            await engine.RunAsync(parsedScript);
 
             Console.WriteLine("\nTest Finished Successfully!");
         }

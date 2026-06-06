@@ -12,6 +12,7 @@ partial class Main
     private System.Windows.Forms.ToolStripMenuItem fileMenuItem;
     private System.Windows.Forms.ToolStripMenuItem newScriptMenuItem;
     private System.Windows.Forms.ToolStripMenuItem openMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem runMacroMenuItem;
     private System.Windows.Forms.ToolStripMenuItem helpMenuItem;
 
     // Declaratie van de UI-elementen voor de main screen
@@ -68,6 +69,7 @@ partial class Main
         this.fileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.newScriptMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.openMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.runMacroMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.helpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.mainTitleLabel = new System.Windows.Forms.Label();
         this.mainContentPanel = new System.Windows.Forms.Panel();
@@ -123,7 +125,8 @@ partial class Main
         // 
         this.fileMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.newScriptMenuItem,
-            this.openMenuItem
+            this.openMenuItem,
+            this.runMacroMenuItem
         });
         this.fileMenuItem.Name = "fileMenuItem";
         this.fileMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -144,6 +147,14 @@ partial class Main
         this.openMenuItem.Size = new System.Drawing.Size(180, 22);
         this.openMenuItem.Text = "Open Macro";
         this.openMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O;
+        
+        // 
+        // runMacroMenuItem
+        // 
+        this.runMacroMenuItem.Name = "runMacroMenuItem";
+        this.runMacroMenuItem.Size = new System.Drawing.Size(180, 22);
+        this.runMacroMenuItem.Text = "Run Macro";
+        this.runMacroMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F5;
         
         // 
         // helpMenuItem
@@ -438,6 +449,7 @@ partial class Main
         this.runMacroButton.Click += RunMacroButton_Click;
         this.newScriptMenuItem.Click += NewScriptMenuItem_Click;
         this.openMenuItem.Click += OpenMenuItem_Click;
+        this.runMacroMenuItem.Click += RunMacroMenuItem_Click;
         
         // Hervat de layout logica
         this.topMenu.ResumeLayout(false);
