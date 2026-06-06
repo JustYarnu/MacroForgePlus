@@ -161,6 +161,7 @@ partial class Main
         this.mainTitleLabel.Location = new System.Drawing.Point(0, 35);
         this.mainTitleLabel.Name = "mainTitleLabel";
         this.mainTitleLabel.Size = new System.Drawing.Size(1100, 60);
+        this.mainTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Add this line
         this.mainTitleLabel.TabIndex = 1;
         this.mainTitleLabel.Text = "Macro Forge+";
         this.mainTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -212,12 +213,13 @@ partial class Main
         // 
         // gettingStartedTitleLabel
         // 
-        this.gettingStartedTitleLabel.AutoSize = true;
+        this.gettingStartedTitleLabel.AutoSize = false; // Changed to false
         this.gettingStartedTitleLabel.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
         this.gettingStartedTitleLabel.ForeColor = System.Drawing.Color.FromArgb(100, 200, 100);
-        this.gettingStartedTitleLabel.Location = new System.Drawing.Point(60, 25);
+        this.gettingStartedTitleLabel.Location = new System.Drawing.Point(0, 25); // Adjusted X
         this.gettingStartedTitleLabel.Name = "gettingStartedTitleLabel";
-        this.gettingStartedTitleLabel.Size = new System.Drawing.Size(220, 30);
+        this.gettingStartedTitleLabel.Size = new System.Drawing.Size(345, 30); // Stretched width
+        this.gettingStartedTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedTitleLabel.TabIndex = 0;
         this.gettingStartedTitleLabel.Text = "Getting Started";
         this.gettingStartedTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -228,9 +230,10 @@ partial class Main
         this.gettingStartedDescriptionLabel.AutoSize = false;
         this.gettingStartedDescriptionLabel.Font = new System.Drawing.Font("Segoe UI", 11F);
         this.gettingStartedDescriptionLabel.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
-        this.gettingStartedDescriptionLabel.Location = new System.Drawing.Point(30, 70);
+        this.gettingStartedDescriptionLabel.Location = new System.Drawing.Point(20, 70); // Adjusted X
         this.gettingStartedDescriptionLabel.Name = "gettingStartedDescriptionLabel";
-        this.gettingStartedDescriptionLabel.Size = new System.Drawing.Size(290, 160);
+        this.gettingStartedDescriptionLabel.Size = new System.Drawing.Size(305, 160); // Stretched width
+        this.gettingStartedDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedDescriptionLabel.TabIndex = 1;
         this.gettingStartedDescriptionLabel.Text = "Create a new macro script to automate keyboard actions, mouse controls, and timed sequences.\r\n\r\nOpen the editor and build workflows for repetitive tasks with precision.";
         this.gettingStartedDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -238,12 +241,13 @@ partial class Main
         // 
         // gettingStartedShortcutLabel
         // 
-        this.gettingStartedShortcutLabel.AutoSize = true;
+        this.gettingStartedShortcutLabel.AutoSize = false; // Changed to false
         this.gettingStartedShortcutLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Italic);
         this.gettingStartedShortcutLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
-        this.gettingStartedShortcutLabel.Location = new System.Drawing.Point(50, 350);
+        this.gettingStartedShortcutLabel.Location = new System.Drawing.Point(0, 350); // Adjusted X
         this.gettingStartedShortcutLabel.Name = "gettingStartedShortcutLabel";
-        this.gettingStartedShortcutLabel.Size = new System.Drawing.Size(240, 40);
+        this.gettingStartedShortcutLabel.Size = new System.Drawing.Size(345, 40); // Stretched width
+        this.gettingStartedShortcutLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedShortcutLabel.TabIndex = 2;
         this.gettingStartedShortcutLabel.Text = "Press Ctrl+N to create a new macro script.";
         this.gettingStartedShortcutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -257,12 +261,13 @@ partial class Main
         this.newScriptButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
         this.newScriptButton.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
         this.newScriptButton.ForeColor = System.Drawing.Color.White;
-        this.newScriptButton.Location = new System.Drawing.Point(80, 270);
+        this.newScriptButton.Location = new System.Drawing.Point(83, 270); // Adjusted X to 83 for perfect center
         this.newScriptButton.Name = "newScriptButton";
         this.newScriptButton.Size = new System.Drawing.Size(180, 45);
+        this.newScriptButton.Anchor = System.Windows.Forms.AnchorStyles.Top; // Added Top Anchor
         this.newScriptButton.TabIndex = 3;
         this.newScriptButton.Text = "New Script";
-        this.newScriptButton.UseVisualStyleBackColor = false;
+        this.newScriptButton.UseVisualStyleBackColor = false;        
         
         // 
         // Open Macro Panel (Middle)
@@ -282,12 +287,13 @@ partial class Main
         // 
         // openMacroTitleLabel
         // 
-        this.openMacroTitleLabel.AutoSize = true;
+        this.openMacroTitleLabel.AutoSize = false;
         this.openMacroTitleLabel.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
         this.openMacroTitleLabel.ForeColor = System.Drawing.Color.FromArgb(100, 150, 250);
-        this.openMacroTitleLabel.Location = new System.Drawing.Point(60, 25);
+        this.openMacroTitleLabel.Location = new System.Drawing.Point(0, 25);
         this.openMacroTitleLabel.Name = "openMacroTitleLabel";
-        this.openMacroTitleLabel.Size = new System.Drawing.Size(220, 30);
+        this.openMacroTitleLabel.Size = new System.Drawing.Size(345, 30);
+        this.openMacroTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         this.openMacroTitleLabel.TabIndex = 0;
         this.openMacroTitleLabel.Text = "Open a Macro";
         this.openMacroTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -298,9 +304,10 @@ partial class Main
         this.openMacroDescriptionLabel.AutoSize = false;
         this.openMacroDescriptionLabel.Font = new System.Drawing.Font("Segoe UI", 11F);
         this.openMacroDescriptionLabel.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
-        this.openMacroDescriptionLabel.Location = new System.Drawing.Point(30, 70);
+        this.openMacroDescriptionLabel.Location = new System.Drawing.Point(20, 70);
         this.openMacroDescriptionLabel.Name = "openMacroDescriptionLabel";
-        this.openMacroDescriptionLabel.Size = new System.Drawing.Size(290, 160);
+        this.openMacroDescriptionLabel.Size = new System.Drawing.Size(305, 160);
+        this.openMacroDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         this.openMacroDescriptionLabel.TabIndex = 1;
         this.openMacroDescriptionLabel.Text = "Browse and open an existing macro file from disk.\r\n\r\nUse this panel to load saved automations and continue your workflow.";
         this.openMacroDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -308,12 +315,13 @@ partial class Main
         // 
         // openMacroShortcutLabel
         // 
-        this.openMacroShortcutLabel.AutoSize = true;
+        this.openMacroShortcutLabel.AutoSize = false;
         this.openMacroShortcutLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Italic);
         this.openMacroShortcutLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
-        this.openMacroShortcutLabel.Location = new System.Drawing.Point(50, 350);
+        this.openMacroShortcutLabel.Location = new System.Drawing.Point(0, 350);
         this.openMacroShortcutLabel.Name = "openMacroShortcutLabel";
-        this.openMacroShortcutLabel.Size = new System.Drawing.Size(240, 40);
+        this.openMacroShortcutLabel.Size = new System.Drawing.Size(345, 40);
+        this.openMacroShortcutLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         this.openMacroShortcutLabel.TabIndex = 2;
         this.openMacroShortcutLabel.Text = "Press Ctrl+O to open a saved macro file.";
         this.openMacroShortcutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -327,9 +335,10 @@ partial class Main
         this.openMacroButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
         this.openMacroButton.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
         this.openMacroButton.ForeColor = System.Drawing.Color.White;
-        this.openMacroButton.Location = new System.Drawing.Point(80, 270);
+        this.openMacroButton.Location = new System.Drawing.Point(83, 270);
         this.openMacroButton.Name = "openMacroButton";
         this.openMacroButton.Size = new System.Drawing.Size(180, 45);
+        this.openMacroButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
         this.openMacroButton.TabIndex = 3;
         this.openMacroButton.Text = "Open Macro";
         this.openMacroButton.UseVisualStyleBackColor = false;
@@ -352,12 +361,13 @@ partial class Main
         // 
         // runMacroTitleLabel
         // 
-        this.runMacroTitleLabel.AutoSize = true;
+        this.runMacroTitleLabel.AutoSize = false;
         this.runMacroTitleLabel.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
         this.runMacroTitleLabel.ForeColor = System.Drawing.Color.FromArgb(250, 150, 100);
-        this.runMacroTitleLabel.Location = new System.Drawing.Point(60, 25);
+        this.runMacroTitleLabel.Location = new System.Drawing.Point(0, 25);
         this.runMacroTitleLabel.Name = "runMacroTitleLabel";
-        this.runMacroTitleLabel.Size = new System.Drawing.Size(220, 30);
+        this.runMacroTitleLabel.Size = new System.Drawing.Size(345, 30);
+        this.runMacroTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         this.runMacroTitleLabel.TabIndex = 0;
         this.runMacroTitleLabel.Text = "Run a Macro";
         this.runMacroTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -368,9 +378,10 @@ partial class Main
         this.runMacroDescriptionLabel.AutoSize = false;
         this.runMacroDescriptionLabel.Font = new System.Drawing.Font("Segoe UI", 11F);
         this.runMacroDescriptionLabel.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
-        this.runMacroDescriptionLabel.Location = new System.Drawing.Point(30, 70);
+        this.runMacroDescriptionLabel.Location = new System.Drawing.Point(20, 70);
         this.runMacroDescriptionLabel.Name = "runMacroDescriptionLabel";
-        this.runMacroDescriptionLabel.Size = new System.Drawing.Size(290, 160);
+        this.runMacroDescriptionLabel.Size = new System.Drawing.Size(305, 160);
+        this.runMacroDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         this.runMacroDescriptionLabel.TabIndex = 1;
         this.runMacroDescriptionLabel.Text = "Run the currently loaded macro to execute automated actions.\r\n\r\nUse this panel after opening a script to start playback and validate your workflow.";
         this.runMacroDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -378,12 +389,13 @@ partial class Main
         // 
         // runMacroShortcutLabel
         // 
-        this.runMacroShortcutLabel.AutoSize = true;
+        this.runMacroShortcutLabel.AutoSize = false;
         this.runMacroShortcutLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Italic);
         this.runMacroShortcutLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
-        this.runMacroShortcutLabel.Location = new System.Drawing.Point(50, 350);
+        this.runMacroShortcutLabel.Location = new System.Drawing.Point(0, 350);
         this.runMacroShortcutLabel.Name = "runMacroShortcutLabel";
-        this.runMacroShortcutLabel.Size = new System.Drawing.Size(240, 40);
+        this.runMacroShortcutLabel.Size = new System.Drawing.Size(345, 40);
+        this.runMacroShortcutLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
         this.runMacroShortcutLabel.TabIndex = 2;
         this.runMacroShortcutLabel.Text = "Press F5 to run the current macro.";
         this.runMacroShortcutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -397,9 +409,10 @@ partial class Main
         this.runMacroButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
         this.runMacroButton.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
         this.runMacroButton.ForeColor = System.Drawing.Color.White;
-        this.runMacroButton.Location = new System.Drawing.Point(80, 270);
+        this.runMacroButton.Location = new System.Drawing.Point(83, 270);
         this.runMacroButton.Name = "runMacroButton";
         this.runMacroButton.Size = new System.Drawing.Size(180, 45);
+        this.runMacroButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
         this.runMacroButton.TabIndex = 3;
         this.runMacroButton.Text = "Run Macro";
         this.runMacroButton.UseVisualStyleBackColor = false;
