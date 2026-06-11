@@ -18,30 +18,16 @@ partial class Main
     // Declaratie van de UI-elementen voor de main screen
     private System.Windows.Forms.Label mainTitleLabel;
     
-    // Panels for the three-column layout
+    // Panels for the one-card layout
     private System.Windows.Forms.Panel mainContentPanel;
     private System.Windows.Forms.TableLayoutPanel contentTableLayout;
     
-    // Getting Started Panel (Left)
+    // Welcome Card Panel
     private System.Windows.Forms.Panel gettingStartedPanel;
     private System.Windows.Forms.Label gettingStartedTitleLabel;
     private System.Windows.Forms.Label gettingStartedDescriptionLabel;
     private System.Windows.Forms.Label gettingStartedShortcutLabel;
     private System.Windows.Forms.Button newScriptButton;
-    
-    // Open Macro Panel (Middle)
-    private System.Windows.Forms.Panel openMacroPanel;
-    private System.Windows.Forms.Label openMacroTitleLabel;
-    private System.Windows.Forms.Label openMacroDescriptionLabel;
-    private System.Windows.Forms.Label openMacroShortcutLabel;
-    private System.Windows.Forms.Button openMacroButton;
-    
-    // Run Macro Panel (Right)
-    private System.Windows.Forms.Panel runMacroPanel;
-    private System.Windows.Forms.Label runMacroTitleLabel;
-    private System.Windows.Forms.Label runMacroDescriptionLabel;
-    private System.Windows.Forms.Label runMacroShortcutLabel;
-    private System.Windows.Forms.Button runMacroButton;
 
     /// <summary>
     ///  Clean up any resources being used.
@@ -82,27 +68,11 @@ partial class Main
         this.gettingStartedShortcutLabel = new System.Windows.Forms.Label();
         this.newScriptButton = new System.Windows.Forms.Button();
         
-        // Open Macro Panel components
-        this.openMacroPanel = new System.Windows.Forms.Panel();
-        this.openMacroTitleLabel = new System.Windows.Forms.Label();
-        this.openMacroDescriptionLabel = new System.Windows.Forms.Label();
-        this.openMacroShortcutLabel = new System.Windows.Forms.Label();
-        this.openMacroButton = new System.Windows.Forms.Button();
-        
-        // Run Macro Panel components
-        this.runMacroPanel = new System.Windows.Forms.Panel();
-        this.runMacroTitleLabel = new System.Windows.Forms.Label();
-        this.runMacroDescriptionLabel = new System.Windows.Forms.Label();
-        this.runMacroShortcutLabel = new System.Windows.Forms.Label();
-        this.runMacroButton = new System.Windows.Forms.Button();
-        
         // Pauzeer de layout logica tijdens het opbouwen
         this.topMenu.SuspendLayout();
         this.mainContentPanel.SuspendLayout();
         this.contentTableLayout.SuspendLayout();
         this.gettingStartedPanel.SuspendLayout();
-        this.openMacroPanel.SuspendLayout();
-        this.runMacroPanel.SuspendLayout();
         this.SuspendLayout();
         
         // 
@@ -162,6 +132,7 @@ partial class Main
         this.helpMenuItem.Name = "helpMenuItem";
         this.helpMenuItem.Size = new System.Drawing.Size(44, 20);
         this.helpMenuItem.Text = "Help";
+        this.helpMenuItem.Click += new System.EventHandler(this.HelpMenuItem_Click);
         
         // 
         // mainTitleLabel
@@ -191,13 +162,9 @@ partial class Main
         // 
         // contentTableLayout
         // 
-        this.contentTableLayout.ColumnCount = 3;
-        this.contentTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
-        this.contentTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.34F));
-        this.contentTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
+        this.contentTableLayout.ColumnCount = 1;
+        this.contentTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
         this.contentTableLayout.Controls.Add(this.gettingStartedPanel, 0, 0);
-        this.contentTableLayout.Controls.Add(this.openMacroPanel, 1, 0);
-        this.contentTableLayout.Controls.Add(this.runMacroPanel, 2, 0);
         this.contentTableLayout.Dock = System.Windows.Forms.DockStyle.Fill;
         this.contentTableLayout.Location = new System.Drawing.Point(20, 10);
         this.contentTableLayout.Name = "contentTableLayout";
@@ -232,7 +199,7 @@ partial class Main
         this.gettingStartedTitleLabel.Size = new System.Drawing.Size(345, 30); // Stretched width
         this.gettingStartedTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedTitleLabel.TabIndex = 0;
-        this.gettingStartedTitleLabel.Text = "Getting Started";
+        this.gettingStartedTitleLabel.Text = "Open Script Editor";
         this.gettingStartedTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
         
         // 
@@ -246,7 +213,7 @@ partial class Main
         this.gettingStartedDescriptionLabel.Size = new System.Drawing.Size(305, 160); // Stretched width
         this.gettingStartedDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedDescriptionLabel.TabIndex = 1;
-        this.gettingStartedDescriptionLabel.Text = "Create a new macro script to automate keyboard actions, mouse controls, and timed sequences.\r\n\r\nOpen the editor and build workflows for repetitive tasks with precision.";
+        this.gettingStartedDescriptionLabel.Text = "Open the script editor to create or edit macros.\r\n\r\nStart with a blank script or load an existing macro once the editor opens.";
         this.gettingStartedDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
         
         // 
@@ -260,7 +227,7 @@ partial class Main
         this.gettingStartedShortcutLabel.Size = new System.Drawing.Size(345, 40); // Stretched width
         this.gettingStartedShortcutLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedShortcutLabel.TabIndex = 2;
-        this.gettingStartedShortcutLabel.Text = "Press Ctrl+N to create a new macro script.";
+        this.gettingStartedShortcutLabel.Text = "Press Ctrl+N to open the script editor.";
         this.gettingStartedShortcutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
         
         // 
@@ -277,156 +244,8 @@ partial class Main
         this.newScriptButton.Size = new System.Drawing.Size(180, 45);
         this.newScriptButton.Anchor = System.Windows.Forms.AnchorStyles.Top; // Added Top Anchor
         this.newScriptButton.TabIndex = 3;
-        this.newScriptButton.Text = "New Script";
+        this.newScriptButton.Text = "Open Editor";
         this.newScriptButton.UseVisualStyleBackColor = false;        
-        
-        // 
-        // Open Macro Panel (Middle)
-        // 
-        this.openMacroPanel.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
-        this.openMacroPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-        this.openMacroPanel.Controls.Add(this.openMacroTitleLabel);
-        this.openMacroPanel.Controls.Add(this.openMacroDescriptionLabel);
-        this.openMacroPanel.Controls.Add(this.openMacroShortcutLabel);
-        this.openMacroPanel.Controls.Add(this.openMacroButton);
-        this.openMacroPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-        this.openMacroPanel.Location = new System.Drawing.Point(356, 3);
-        this.openMacroPanel.Name = "openMacroPanel";
-        this.openMacroPanel.Size = new System.Drawing.Size(348, 414);
-        this.openMacroPanel.TabIndex = 1;
-        
-        // 
-        // openMacroTitleLabel
-        // 
-        this.openMacroTitleLabel.AutoSize = false;
-        this.openMacroTitleLabel.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
-        this.openMacroTitleLabel.ForeColor = System.Drawing.Color.FromArgb(100, 150, 250);
-        this.openMacroTitleLabel.Location = new System.Drawing.Point(0, 25);
-        this.openMacroTitleLabel.Name = "openMacroTitleLabel";
-        this.openMacroTitleLabel.Size = new System.Drawing.Size(345, 30);
-        this.openMacroTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-        this.openMacroTitleLabel.TabIndex = 0;
-        this.openMacroTitleLabel.Text = "Open a Macro";
-        this.openMacroTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-        
-        // 
-        // openMacroDescriptionLabel
-        // 
-        this.openMacroDescriptionLabel.AutoSize = false;
-        this.openMacroDescriptionLabel.Font = new System.Drawing.Font("Segoe UI", 11F);
-        this.openMacroDescriptionLabel.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
-        this.openMacroDescriptionLabel.Location = new System.Drawing.Point(20, 70);
-        this.openMacroDescriptionLabel.Name = "openMacroDescriptionLabel";
-        this.openMacroDescriptionLabel.Size = new System.Drawing.Size(305, 160);
-        this.openMacroDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-        this.openMacroDescriptionLabel.TabIndex = 1;
-        this.openMacroDescriptionLabel.Text = "Browse and open an existing macro file from disk.\r\n\r\nUse this panel to load saved automations and continue your workflow.";
-        this.openMacroDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-        
-        // 
-        // openMacroShortcutLabel
-        // 
-        this.openMacroShortcutLabel.AutoSize = false;
-        this.openMacroShortcutLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Italic);
-        this.openMacroShortcutLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
-        this.openMacroShortcutLabel.Location = new System.Drawing.Point(0, 350);
-        this.openMacroShortcutLabel.Name = "openMacroShortcutLabel";
-        this.openMacroShortcutLabel.Size = new System.Drawing.Size(345, 40);
-        this.openMacroShortcutLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-        this.openMacroShortcutLabel.TabIndex = 2;
-        this.openMacroShortcutLabel.Text = "Press Ctrl+O to open a saved macro file.";
-        this.openMacroShortcutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-        
-        // 
-        // openMacroButton
-        // 
-        this.openMacroButton.BackColor = System.Drawing.Color.FromArgb(60, 60, 65);
-        this.openMacroButton.FlatAppearance.BorderSize = 0;
-        this.openMacroButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(80, 80, 85);
-        this.openMacroButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-        this.openMacroButton.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-        this.openMacroButton.ForeColor = System.Drawing.Color.White;
-        this.openMacroButton.Location = new System.Drawing.Point(83, 270);
-        this.openMacroButton.Name = "openMacroButton";
-        this.openMacroButton.Size = new System.Drawing.Size(180, 45);
-        this.openMacroButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
-        this.openMacroButton.TabIndex = 3;
-        this.openMacroButton.Text = "Open Macro";
-        this.openMacroButton.UseVisualStyleBackColor = false;
-        
-        // 
-        // Run Macro Panel (Right)
-        // 
-        this.runMacroPanel.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
-        this.runMacroPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-        this.runMacroPanel.Controls.Add(this.runMacroTitleLabel);
-        this.runMacroPanel.Controls.Add(this.runMacroDescriptionLabel);
-        this.runMacroPanel.Controls.Add(this.runMacroShortcutLabel);
-        this.runMacroPanel.Controls.Add(this.runMacroButton);
-        this.runMacroPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-        this.runMacroPanel.Location = new System.Drawing.Point(710, 3);
-        this.runMacroPanel.Name = "runMacroPanel";
-        this.runMacroPanel.Size = new System.Drawing.Size(347, 414);
-        this.runMacroPanel.TabIndex = 2;
-        
-        // 
-        // runMacroTitleLabel
-        // 
-        this.runMacroTitleLabel.AutoSize = false;
-        this.runMacroTitleLabel.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
-        this.runMacroTitleLabel.ForeColor = System.Drawing.Color.FromArgb(250, 150, 100);
-        this.runMacroTitleLabel.Location = new System.Drawing.Point(0, 25);
-        this.runMacroTitleLabel.Name = "runMacroTitleLabel";
-        this.runMacroTitleLabel.Size = new System.Drawing.Size(345, 30);
-        this.runMacroTitleLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-        this.runMacroTitleLabel.TabIndex = 0;
-        this.runMacroTitleLabel.Text = "Run a Macro";
-        this.runMacroTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-        
-        // 
-        // runMacroDescriptionLabel
-        // 
-        this.runMacroDescriptionLabel.AutoSize = false;
-        this.runMacroDescriptionLabel.Font = new System.Drawing.Font("Segoe UI", 11F);
-        this.runMacroDescriptionLabel.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
-        this.runMacroDescriptionLabel.Location = new System.Drawing.Point(20, 70);
-        this.runMacroDescriptionLabel.Name = "runMacroDescriptionLabel";
-        this.runMacroDescriptionLabel.Size = new System.Drawing.Size(305, 160);
-        this.runMacroDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-        this.runMacroDescriptionLabel.TabIndex = 1;
-        this.runMacroDescriptionLabel.Text = "Run the currently loaded macro to execute automated actions.\r\n\r\nUse this panel after opening a script to start playback and validate your workflow.";
-        this.runMacroDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-        
-        // 
-        // runMacroShortcutLabel
-        // 
-        this.runMacroShortcutLabel.AutoSize = false;
-        this.runMacroShortcutLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Italic);
-        this.runMacroShortcutLabel.ForeColor = System.Drawing.Color.FromArgb(120, 120, 120);
-        this.runMacroShortcutLabel.Location = new System.Drawing.Point(0, 350);
-        this.runMacroShortcutLabel.Name = "runMacroShortcutLabel";
-        this.runMacroShortcutLabel.Size = new System.Drawing.Size(345, 40);
-        this.runMacroShortcutLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-        this.runMacroShortcutLabel.TabIndex = 2;
-        this.runMacroShortcutLabel.Text = "Press F5 to run the current macro.";
-        this.runMacroShortcutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-        
-        // 
-        // runMacroButton
-        // 
-        this.runMacroButton.BackColor = System.Drawing.Color.FromArgb(60, 60, 65);
-        this.runMacroButton.FlatAppearance.BorderSize = 0;
-        this.runMacroButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(80, 80, 85);
-        this.runMacroButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-        this.runMacroButton.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-        this.runMacroButton.ForeColor = System.Drawing.Color.White;
-        this.runMacroButton.Location = new System.Drawing.Point(83, 270);
-        this.runMacroButton.Name = "runMacroButton";
-        this.runMacroButton.Size = new System.Drawing.Size(180, 45);
-        this.runMacroButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
-        this.runMacroButton.TabIndex = 3;
-        this.runMacroButton.Text = "Run Macro";
-        this.runMacroButton.UseVisualStyleBackColor = false;
         
         // 
         // Main (Het hoofdvenster)
@@ -440,13 +259,13 @@ partial class Main
         this.Controls.Add(this.topMenu);
         this.MainMenuStrip = this.topMenu;
         this.Name = "Main";
+        this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+        this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
         this.Text = "Macro Forge Plus";
         this.Icon = new System.Drawing.Icon(System.IO.Path.Combine(Application.StartupPath, "Resources", "Favico.ico"));
         
         // Event handlers
         this.newScriptButton.Click += NewScriptButton_Click;
-        this.openMacroButton.Click += OpenMacroButton_Click;
-        this.runMacroButton.Click += RunMacroButton_Click;
         this.newScriptMenuItem.Click += NewScriptMenuItem_Click;
         this.openMenuItem.Click += OpenMenuItem_Click;
         this.runMacroMenuItem.Click += RunMacroMenuItem_Click;
@@ -458,10 +277,6 @@ partial class Main
         this.contentTableLayout.ResumeLayout(false);
         this.gettingStartedPanel.ResumeLayout(false);
         this.gettingStartedPanel.PerformLayout();
-        this.openMacroPanel.ResumeLayout(false);
-        this.openMacroPanel.PerformLayout();
-        this.runMacroPanel.ResumeLayout(false);
-        this.runMacroPanel.PerformLayout();
         this.ResumeLayout(false);
         this.PerformLayout();
     }

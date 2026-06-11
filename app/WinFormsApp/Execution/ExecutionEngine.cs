@@ -21,6 +21,8 @@ public class ExecutionEngine
         var token = _cts.Token;
 
         _controller.AutoRandomize = parsedScript.Options.AutoRandomize;
+        _controller.AutoRandomizeLowerBound = parsedScript.Options.AutoRandomizeLowerBound;
+        _controller.AutoRandomizeUpperBound = parsedScript.Options.AutoRandomizeUpperBound;
         _controller.AbortButton = parsedScript.Options.AbortButton;
         _controller.SetBlockPhysicalInput(parsedScript.Options.BlockPhysicalInput);
 

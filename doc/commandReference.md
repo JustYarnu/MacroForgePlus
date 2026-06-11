@@ -3,6 +3,20 @@ This documentation goes over command syntax and how to utilize this in a script 
 
 Note: Scripts are case-insensitive.   
 
+## Keyboard Shortcuts
+| Shortcut | Action |
+| :--- | :--- |
+| `F5` | Execute/Run the current script |
+| `Shift + F5` | Stop script execution |
+| `F6` | Start recording input |
+| `F7` | Stop recording input |
+| `Escape` | Abort script execution (if enabled) |
+| `Ctrl + N` | Create new script |
+| `Ctrl + O` | Open macro file |
+| `Ctrl + S` | Save script |
+| `Ctrl + Shift + S` | Save script as... |
+
+
 ## Command Syntax
 `<input> <wait> <time> <action> <arguments>`
 
@@ -105,11 +119,11 @@ Global state variables allow you to change the behavior of the engine by setting
 
 | Variable | Value(s) | Description | Example |
 | :--- | :--- | :--- | :--- |
-| `autorandomize` | `true` | Injects small, random delays (e.g., 10-30ms) between actions or mouse movements to avoid detection as mechanical input. | `engine setvar autoRandomize true` |
+| `autorandomize` | `true` / `R[min,max]` | Injects small, random delays (e.g., 10-30ms) between actions or mouse movements to avoid detection as mechanical input. Alternatively you can set these delays yourself. | `engine setvar autoRandomize true` |
 | `blockphysicalinput` | `true` / `mouse` / `keyboard` | Blocks physical input during script execution. Can be set to `true` (both), `mouse`, or `keyboard` to restrict specific hardware. | `engine setvar BlockPhysicalInput mouse` |
 | `abortbutton` | `true` | If true, pressing the `Escape` key will stop the script immediately (this overrides `BlockPhysicalInput`). | `engine setvar AbortButton true` |
 | `repeatindefinitely` | `true` / `false` / `interval <min>` | If `true`, the script loops infinitely. If set to `interval <min>`, the script repeats every X minutes. | `engine setvar RepeatIndefinitely interval 60` |
-| `inputbuffering` | `true` | Enables input buffering. | `engine setvar inputbuffering` |
+| `inputbuffering` | `true` | Enables input buffering. | `engine setvar inputbuffering true` |
 
 #### Input buffering
 

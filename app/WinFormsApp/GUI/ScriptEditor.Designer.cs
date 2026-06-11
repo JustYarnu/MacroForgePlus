@@ -43,6 +43,9 @@ partial class ScriptEditor
         this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.recordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.startRecordingMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.stopRecordingMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.executeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.stopExecutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.menuStrip.SuspendLayout();
@@ -74,6 +77,7 @@ partial class ScriptEditor
         this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
         this.fileToolStripMenuItem,
         this.editToolStripMenuItem,
+        this.recordToolStripMenuItem,
         this.executeToolStripMenuItem,
         this.stopExecutionToolStripMenuItem});
         this.menuStrip.Location = new System.Drawing.Point(0, 0);
@@ -151,6 +155,33 @@ partial class ScriptEditor
         this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
         this.editToolStripMenuItem.Text = "Edit";
         // 
+        // recordToolStripMenuItem
+        // 
+        this.recordToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+        this.startRecordingMenuItem,
+        this.stopRecordingMenuItem});
+        this.recordToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+        this.recordToolStripMenuItem.Name = "recordToolStripMenuItem";
+        this.recordToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
+        this.recordToolStripMenuItem.Text = "Record";
+        // 
+        // startRecordingMenuItem
+        // 
+        this.startRecordingMenuItem.ForeColor = System.Drawing.Color.Black;
+        this.startRecordingMenuItem.Name = "startRecordingMenuItem";
+        this.startRecordingMenuItem.Size = new System.Drawing.Size(180, 22);
+        this.startRecordingMenuItem.Text = "Start Recording";
+        this.startRecordingMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F6;
+        // 
+        // stopRecordingMenuItem
+        // 
+        this.stopRecordingMenuItem.ForeColor = System.Drawing.Color.Black;
+        this.stopRecordingMenuItem.Name = "stopRecordingMenuItem";
+        this.stopRecordingMenuItem.Size = new System.Drawing.Size(180, 22);
+        this.stopRecordingMenuItem.Text = "Stop Recording";
+        this.stopRecordingMenuItem.Enabled = false;
+        this.stopRecordingMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F7;
+        // 
         // executeToolStripMenuItem
         // 
         this.executeToolStripMenuItem.ForeColor = System.Drawing.Color.White;
@@ -216,6 +247,9 @@ partial class ScriptEditor
     private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem redoToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem recordToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem startRecordingMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem stopRecordingMenuItem;
     private System.Windows.Forms.ToolStripMenuItem executeToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem stopExecutionToolStripMenuItem;
 }

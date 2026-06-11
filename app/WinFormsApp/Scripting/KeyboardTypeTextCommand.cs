@@ -3,8 +3,8 @@ using WindowsInput.Events;
 
 public class KeyboardTypeTextCommand : IMacroCommand
 {
-    public KeyCode[] TextKeys { get; }
-    public string TextString { get; }
+    public KeyCode[]? TextKeys { get; }
+    public string? TextString { get; }
 
     // Standard constructor for pre-mapped arrays (special key combinations)
     public KeyboardTypeTextCommand(KeyCode[] textKeys)

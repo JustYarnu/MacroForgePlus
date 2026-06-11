@@ -592,7 +592,7 @@ public class ScriptParser
         switch (name.ToLowerInvariant())
         {
             case "autorandomize":
-                options.AutoRandomize = ParseBooleanValue(value);
+                ParseAutoRandomizeValue(value, options);
                 break;
             case "abortbutton":
                 options.AbortButton = ParseBooleanValue(value);
@@ -640,6 +640,8 @@ public class ScriptParser
         {
             case "autorandomize":
                 options.AutoRandomize = false;
+                options.AutoRandomizeLowerBound = 10;
+                options.AutoRandomizeUpperBound = 30;
                 break;
             case "abortbutton":
                 options.AbortButton = false;
@@ -657,6 +659,49 @@ public class ScriptParser
             default:
                 break;
         }
+    }
+
+    private static void ParseAutoRandomizeValue(string value, ScriptOptions options)
+    {
+        if (string.Equals(value, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            options.AutoRandomize = true;
+            options.AutoRandomizeLowerBound = 10;
+            options.AutoRandomizeUpperBound = 30;
+            return;
+        }
+
+        if (string.Equals(value, "false", StringComparison.OrdinalIgnoreCase))
+        {
+            options.AutoRandomize = false;
+            options.AutoRandomizeLowerBound = 10;
+            options.AutoRandomizeUpperBound = 30;
+            return;
+        }
+
+        if (value.StartsWith("r[", StringComparison.OrdinalIgnoreCase) && value.EndsWith("]"))
+        {
+            string inner = value.Substring(2, value.Length - 3);
+            var parts = inner.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2
+                || !int.TryParse(parts[0].Trim(), out var lowerBound)
+                || !int.TryParse(parts[1].Trim(), out var upperBound)
+                || lowerBound < 0
+                || upperBound < 0)
+            {
+                throw new FormatException($"Invalid autorandomize range: '{value}'. Expected 'R[min,max]' with non-negative integers.");
+            }
+
+            if (lowerBound > upperBound)
+                (lowerBound, upperBound) = (upperBound, lowerBound);
+
+            options.AutoRandomize = true;
+            options.AutoRandomizeLowerBound = lowerBound;
+            options.AutoRandomizeUpperBound = upperBound;
+            return;
+        }
+
+        throw new FormatException($"Invalid autorandomize value: '{value}'. Expected 'true', 'false', or 'R[min,max]'.");
     }
 
     private static bool ParseBooleanValue(string value)
@@ -681,6 +726,8 @@ public class ParsedScript
 public class ScriptOptions
 {
     public bool AutoRandomize { get; set; }
+    public int AutoRandomizeLowerBound { get; set; } = 10;
+    public int AutoRandomizeUpperBound { get; set; } = 30;
     public bool InputBuffering { get; set; }
     public bool AbortButton { get; set; }
     public PhysicalInputBlockMode BlockPhysicalInput { get; set; } = PhysicalInputBlockMode.None;

@@ -28,6 +28,8 @@ public partial class ScriptEditor : Form
     private CancellationTokenSource? _executionCts;
     private bool _isExecuting;
     private bool _abortButtonEnabled;
+    private bool _isRecording;
+    private readonly RecordingManager _recordingManager;
 
     private static readonly Dictionary<string, Color> HighlightKeywords = new()
     {
@@ -82,6 +84,8 @@ public partial class ScriptEditor : Form
         editor.TextArea.Caret.PositionChanged += (_, _) => editor.TextArea.TextView.InvalidateLayer(KnownLayer.Background);
         editor.TextChanged += (_, _) => editor.TextArea.TextView.Redraw();
 
+        _recordingManager = new RecordingManager();
+
         // Wire up event handlers for menu items
         newScriptMenuItem.Click += NewScriptMenuItem_Click;
         openScriptMenuItem.Click += OpenScriptMenuItem_Click;
@@ -89,6 +93,8 @@ public partial class ScriptEditor : Form
         saveAsToolStripMenuItem.Click += SaveAsToolStripMenuItem_Click;
         executeToolStripMenuItem.Click += ExecuteToolStripMenuItem_Click;
         stopExecutionToolStripMenuItem.Click += StopExecutionToolStripMenuItem_Click;
+        startRecordingMenuItem.Click += StartRecordingMenuItem_Click;
+        stopRecordingMenuItem.Click += StopRecordingMenuItem_Click;
     }
 
     private static TextEditor CreateEditor()
@@ -206,9 +212,19 @@ public partial class ScriptEditor : Form
 
     private void NewScriptMenuItem_Click(object? sender, EventArgs e)
     {
-        // Create a new script editor window
-        var newEditor = new ScriptEditor();
-        newEditor.Show();
+        editor.Text = string.Empty;
+        _currentFilePath = null;
+        UpdateTitle();
+    }
+
+    private async void StartRecordingMenuItem_Click(object? sender, EventArgs e)
+    {
+        await StartRecordingAsync();
+    }
+
+    private void StopRecordingMenuItem_Click(object? sender, EventArgs e)
+    {
+        StopRecording();
     }
 
     private void OpenScriptMenuItem_Click(object? sender, EventArgs e)
@@ -442,6 +458,36 @@ public partial class ScriptEditor : Form
         StopScriptExecution();
     }
 
+    /// <summary>
+    /// Starts recording from an external caller (e.g., main window or global hotkey F6).
+    /// This method is thread-safe and can be called from any thread.
+    /// </summary>
+    public void StartRecordingFromExternal()
+    {
+        if (InvokeRequired)
+        {
+            Invoke(new Action(async () => await StartRecordingAsync()));
+            return;
+        }
+
+        _ = StartRecordingAsync();
+    }
+
+    /// <summary>
+    /// Stops recording from an external caller (e.g., main window or global hotkey F7).
+    /// This method is thread-safe and can be called from any thread.
+    /// </summary>
+    public void StopRecordingFromExternal()
+    {
+        if (InvokeRequired)
+        {
+            Invoke(new Action(StopRecording));
+            return;
+        }
+
+        StopRecording();
+    }
+
     private void StopScriptExecution()
     {
         if (_executionEngine != null)
@@ -470,6 +516,112 @@ public partial class ScriptEditor : Form
         }
     }
 
+    private async Task StartRecordingAsync()
+    {
+        if (_isRecording)
+            return;
+
+        startRecordingMenuItem.Enabled = false;
+        stopRecordingMenuItem.Enabled = false;
+
+        var countdownForm = CreateCountdownForm();
+        countdownForm.Show();
+
+        for (int seconds = 3; seconds >= 1; seconds--)
+        {
+            UpdateCountdownLabel(countdownForm, $"Starting in {seconds}...");
+            await Task.Delay(1000);
+        }
+
+        UpdateCountdownLabel(countdownForm, "Recording started...");
+        await Task.Delay(500);
+        countdownForm.Close();
+
+        try
+        {
+            _recordingManager.Start();
+            _isRecording = true;
+            startRecordingMenuItem.Enabled = false;
+            stopRecordingMenuItem.Enabled = true;
+        }
+        catch (Exception ex)
+        {
+            startRecordingMenuItem.Enabled = true;
+            FormsMessageBox.Show(
+                $"Unable to start recording: {ex.Message}",
+                "Recording Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
+    }
+
+    private static void UpdateCountdownLabel(Form countdownForm, string text)
+    {
+        if (countdownForm.Controls.Count > 0 && countdownForm.Controls[0] is System.Windows.Forms.Label label)
+        {
+            label.Text = text;
+            countdownForm.Refresh();
+        }
+    }
+
+    private Form CreateCountdownForm()
+    {
+        var form = new Form
+        {
+            FormBorderStyle = FormBorderStyle.FixedToolWindow,
+            StartPosition = FormStartPosition.CenterParent,
+            Width = 320,
+            Height = 140,
+            Text = "Recording Countdown",
+            TopMost = true
+        };
+
+        var label = new System.Windows.Forms.Label
+        {
+            Dock = DockStyle.Fill,
+            TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+            Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point),
+            Text = "Starting in 3..."
+        };
+
+        form.Controls.Add(label);
+        return form;
+    }
+
+    private void StopRecording()
+    {
+        if (!_isRecording)
+            return;
+
+        var commands = _recordingManager.Stop();
+        _isRecording = false;
+        startRecordingMenuItem.Enabled = true;
+        stopRecordingMenuItem.Enabled = false;
+
+        if (commands.Count == 0)
+        {
+            FormsMessageBox.Show(
+                "No input was captured during recording.",
+                "Recording Finished",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        string scriptText = RecordingManager.FormatCommands(commands);
+        if (!string.IsNullOrWhiteSpace(editor.Text))
+        {
+            editor.Text += Environment.NewLine;
+        }
+
+        editor.Text += scriptText;
+        FormsMessageBox.Show(
+            "Recording stopped and converted into macro commands.",
+            "Recording Finished",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+
     private void UpdateExecutionState()
     {
         executeToolStripMenuItem.Enabled = !_isExecuting;
@@ -484,6 +636,8 @@ public partial class ScriptEditor : Form
             executeToolStripMenuItem.Text = "Execute";
         }
     }
+
+    public MenuStrip EditorMenuStrip => menuStrip;
 
     private void CloseToolStripMenuItem_Click(object? sender, EventArgs e)
     {

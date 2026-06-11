@@ -13,6 +13,8 @@ public class InputController
 
     private readonly object _stateLock = new object();
     private bool _autoRandomize;
+    private int _autoRandomizeLowerBound = 10;
+    private int _autoRandomizeUpperBound = 30;
     private bool _abortButton;
     private bool _inputBuffering;
     private PhysicalInputBlockMode _blockPhysicalInputMode;
@@ -26,6 +28,18 @@ public class InputController
     {
         get => _autoRandomize;
         set => _autoRandomize = value;
+    }
+
+    public int AutoRandomizeLowerBound
+    {
+        get => _autoRandomizeLowerBound;
+        set => _autoRandomizeLowerBound = value;
+    }
+
+    public int AutoRandomizeUpperBound
+    {
+        get => _autoRandomizeUpperBound;
+        set => _autoRandomizeUpperBound = value;
     }
 
     public bool AbortButton
@@ -307,7 +321,9 @@ public class InputController
         if (!_autoRandomize)
             return;
 
-        Thread.Sleep(rnd.Next(10, 31));
+        int lowerBound = Math.Min(_autoRandomizeLowerBound, _autoRandomizeUpperBound);
+        int upperBound = Math.Max(_autoRandomizeLowerBound, _autoRandomizeUpperBound);
+        Thread.Sleep(rnd.Next(lowerBound, upperBound + 1));
     }
 
     private void MaybeAbort()

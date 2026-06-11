@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -13,10 +14,12 @@ public partial class Main : Form
     private ScriptEditor? _activeEditor;
     private bool _isRunning;
 
-    // Global hotkey for F5
+    // Global hotkey for F5, F6, F7
     private const int WmHotkey = 0x0312;
     private const int HotkeyIdRun = 1;
     private const int HotkeyIdAbort = 2;
+    private const int HotkeyIdStartRecording = 3;
+    private const int HotkeyIdStopRecording = 4;
 
     [DllImport("user32.dll")]
     private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
@@ -32,9 +35,11 @@ public partial class Main : Form
 
     private void RegisterGlobalHotkey()
     {
-        // Register F5 and Escape as global hotkeys (no modifiers)
+        // Register F5, F6, F7 and Escape as global hotkeys (no modifiers)
         RegisterHotKey(this.Handle, HotkeyIdRun, 0, (uint)Keys.F5);
         RegisterHotKey(this.Handle, HotkeyIdAbort, 0, (uint)Keys.Escape);
+        RegisterHotKey(this.Handle, HotkeyIdStartRecording, 0, (uint)Keys.F6);
+        RegisterHotKey(this.Handle, HotkeyIdStopRecording, 0, (uint)Keys.F7);
     }
 
     protected override void WndProc(ref Message m)
@@ -61,6 +66,16 @@ public partial class Main : Form
                 // Global abort key pressed
                 _activeEditor?.AbortFromExternal();
             }
+            else if (hotkeyId == HotkeyIdStartRecording)
+            {
+                // F6 was pressed globally - start recording
+                _activeEditor?.StartRecordingFromExternal();
+            }
+            else if (hotkeyId == HotkeyIdStopRecording)
+            {
+                // F7 was pressed globally - stop recording
+                _activeEditor?.StopRecordingFromExternal();
+            }
         }
     }
 
@@ -68,6 +83,8 @@ public partial class Main : Form
     {
         UnregisterHotKey(this.Handle, HotkeyIdRun);
         UnregisterHotKey(this.Handle, HotkeyIdAbort);
+        UnregisterHotKey(this.Handle, HotkeyIdStartRecording);
+        UnregisterHotKey(this.Handle, HotkeyIdStopRecording);
         base.OnFormClosing(e);
     }
 
@@ -84,8 +101,7 @@ public partial class Main : Form
     private void OpenNewScript()
     {
         var editor = new ScriptEditor();
-        TrackEditor(editor);
-        editor.Show();
+        EmbedEditor(editor);
     }
 
     private void OpenMacroButton_Click(object? sender, EventArgs e)
@@ -111,11 +127,16 @@ public partial class Main : Form
         {
             try
             {
-                // Open the file in a new editor window
-                var editor = new ScriptEditor();
-                editor.LoadFile(openFileDialog.FileName);
-                TrackEditor(editor);
-                editor.Show();
+                if (_activeEditor != null)
+                {
+                    _activeEditor.LoadFile(openFileDialog.FileName);
+                }
+                else
+                {
+                    var editor = new ScriptEditor();
+                    editor.LoadFile(openFileDialog.FileName);
+                    EmbedEditor(editor);
+                }
             }
             catch (Exception ex)
             {
@@ -138,6 +159,64 @@ public partial class Main : Form
         RunLastMacro();
     }
 
+    private void HelpMenuItem_Click(object? sender, EventArgs e)
+    {
+        OpenCommandReference();
+    }
+
+    private void OpenCommandReference()
+    {
+        try
+        {
+            // Try to find the commandReference.md file relative to the executable
+            string basePath = AppDomain.CurrentDomain.BaseDirectory;
+            string docPath = Path.Combine(basePath, "doc", "commandReference.md");
+
+            if (!File.Exists(docPath))
+            {
+                // Try relative to current working directory
+                docPath = Path.Combine(Directory.GetCurrentDirectory(), "doc", "commandReference.md");
+            }
+
+            if (!File.Exists(docPath))
+            {
+                // Try relative to project root (for development)
+                string? currentDir = Directory.GetCurrentDirectory();
+                int idx = currentDir.LastIndexOf(Path.DirectorySeparatorChar + "app");
+                if (idx > 0)
+                {
+                    string projectRoot = currentDir.Substring(0, idx);
+                    docPath = Path.Combine(projectRoot, "doc", "commandReference.md");
+                }
+            }
+
+            if (!File.Exists(docPath))
+            {
+                MessageBox.Show(
+                    "Command reference file not found. Please ensure the documentation is installed.",
+                    "Help",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Open with default application (usually a markdown viewer or text editor)
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = docPath,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Error opening help file: {ex.Message}",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
+    }
+
     private void RunLastMacro()
     {
         using var openFileDialog = new OpenFileDialog
@@ -151,20 +230,31 @@ public partial class Main : Form
         {
             try
             {
-                // Open the file in a new editor window and auto-execute after a delay
-                var editor = new ScriptEditor();
-                editor.LoadFile(openFileDialog.FileName);
-                TrackEditor(editor);
-                editor.Show();
-
-                // Auto-execute after a 2 second delay
-                Task.Delay(2000).ContinueWith(_ =>
+                if (_activeEditor != null)
                 {
-                    if (editor.IsHandleCreated)
+                    _activeEditor.LoadFile(openFileDialog.FileName);
+                    Task.Delay(2000).ContinueWith(_ =>
                     {
-                        editor.Invoke(new Action(() => editor.ExecuteFromExternal()));
-                    }
-                });
+                        if (_activeEditor != null && _activeEditor.IsHandleCreated)
+                        {
+                            _activeEditor.Invoke(new Action(() => _activeEditor.ExecuteFromExternal()));
+                        }
+                    });
+                }
+                else
+                {
+                    var editor = new ScriptEditor();
+                    editor.LoadFile(openFileDialog.FileName);
+                    EmbedEditor(editor);
+
+                    Task.Delay(2000).ContinueWith(_ =>
+                    {
+                        if (editor.IsHandleCreated)
+                        {
+                            editor.Invoke(new Action(() => editor.ExecuteFromExternal()));
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -177,6 +267,37 @@ public partial class Main : Form
         }
     }
 
+    private void EmbedEditor(ScriptEditor editor)
+    {
+        if (_activeEditor != null)
+        {
+            _activeEditor.Close();
+        }
+
+        topMenu.Visible = false;
+        MainMenuStrip = editor.EditorMenuStrip;
+        mainContentPanel.Padding = Padding.Empty;
+
+        editor.TopLevel = false;
+        editor.FormBorderStyle = FormBorderStyle.None;
+        editor.Dock = DockStyle.Fill;
+
+        mainContentPanel.Controls.Clear();
+        mainContentPanel.Controls.Add(editor);
+
+        TrackEditor(editor);
+        editor.Show();
+    }
+
+    private void ShowWelcomeCard()
+    {
+        mainContentPanel.Controls.Clear();
+        mainContentPanel.Padding = new Padding(20, 10, 20, 20);
+        mainContentPanel.Controls.Add(contentTableLayout);
+        topMenu.Visible = true;
+        MainMenuStrip = topMenu;
+    }
+
     private void TrackEditor(ScriptEditor editor)
     {
         _activeEditor = editor;
@@ -186,6 +307,7 @@ public partial class Main : Form
             if (_activeEditor == editor)
             {
                 _activeEditor = null;
+                ShowWelcomeCard();
             }
         };
     }
