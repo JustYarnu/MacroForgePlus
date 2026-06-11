@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinFormsApp.GUI;
+using WinFormsApp.Keybinds;
 
 namespace WinFormsApp;
 
@@ -13,6 +14,8 @@ public partial class Main : Form
 {
     private ScriptEditor? _activeEditor;
     private bool _isRunning;
+    private KeybindProfile? _keybindProfile;
+    private KeybindManager? _keybindManager;
 
     // Global hotkey for F5, F6, F7
     private const int WmHotkey = 0x0312;
@@ -30,7 +33,9 @@ public partial class Main : Form
     public Main()
     {
         InitializeComponent();
+        LoadKeybindProfile();
         RegisterGlobalHotkey();
+        RegisterCustomKeybinds();
     }
 
     private void RegisterGlobalHotkey()
@@ -49,6 +54,8 @@ public partial class Main : Form
         if (m.Msg == WmHotkey)
         {
             var hotkeyId = m.WParam.ToInt32();
+            
+            // Handle built-in hotkeys
             if (hotkeyId == HotkeyIdRun)
             {
                 // F5 was pressed globally
@@ -76,6 +83,11 @@ public partial class Main : Form
                 // F7 was pressed globally - stop recording
                 _activeEditor?.StopRecordingFromExternal();
             }
+            else
+            {
+                // Handle custom keybinds
+                _keybindManager?.HandleHotkey(hotkeyId);
+            }
         }
     }
 
@@ -85,7 +97,50 @@ public partial class Main : Form
         UnregisterHotKey(this.Handle, HotkeyIdAbort);
         UnregisterHotKey(this.Handle, HotkeyIdStartRecording);
         UnregisterHotKey(this.Handle, HotkeyIdStopRecording);
+        _keybindManager?.Dispose();
         base.OnFormClosing(e);
+    }
+
+    private void LoadKeybindProfile()
+    {
+        _keybindProfile = KeybindProfile.Load();
+        _keybindManager = new KeybindManager(this, _keybindProfile);
+        _keybindManager.KeybindTriggered += OnKeybindTriggered;
+    }
+
+    private void RegisterCustomKeybinds()
+    {
+        _keybindManager?.RegisterAllKeybinds();
+    }
+
+    private void OnKeybindTriggered(object? sender, KeybindTriggeredEventArgs e)
+    {
+        // Handle keybind triggered event (for notifications, logging, etc.)
+        if (!e.Success && !string.IsNullOrEmpty(e.ErrorMessage))
+        {
+            // Could show a notification or log the error
+            // For now, we'll just write to debug output
+            System.Diagnostics.Debug.WriteLine($"Keybind failed: {e.Keybind.KeyDisplay} - {e.ErrorMessage}");
+        }
+    }
+
+    private void KeybindsMenuItem_Click(object? sender, EventArgs e)
+    {
+        OpenKeybindManager();
+    }
+
+    private void OpenKeybindManager()
+    {
+        if (_keybindProfile == null)
+            return;
+
+        var dialog = new KeybindManagerDialog(_keybindProfile);
+        dialog.ProfileUpdated += (s, e) =>
+        {
+            // Re-register keybinds after profile update
+            _keybindManager?.RegisterAllKeybinds();
+        };
+        dialog.ShowDialog(this);
     }
 
     private void NewScriptButton_Click(object? sender, EventArgs e)

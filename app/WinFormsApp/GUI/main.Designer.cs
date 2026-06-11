@@ -13,6 +13,7 @@ partial class Main
     private System.Windows.Forms.ToolStripMenuItem newScriptMenuItem;
     private System.Windows.Forms.ToolStripMenuItem openMenuItem;
     private System.Windows.Forms.ToolStripMenuItem runMacroMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem keybindsMenuItem;
     private System.Windows.Forms.ToolStripMenuItem helpMenuItem;
 
     // Declaratie van de UI-elementen voor de main screen
@@ -56,6 +57,7 @@ partial class Main
         this.newScriptMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.openMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.runMacroMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.keybindsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.helpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.mainTitleLabel = new System.Windows.Forms.Label();
         this.mainContentPanel = new System.Windows.Forms.Panel();
@@ -82,6 +84,7 @@ partial class Main
         this.topMenu.ForeColor = System.Drawing.Color.White; // Witte tekst voor leesbaarheid
         this.topMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileMenuItem,
+            this.keybindsMenuItem,
             this.helpMenuItem
         });
         this.topMenu.Location = new System.Drawing.Point(0, 0);
@@ -125,6 +128,14 @@ partial class Main
         this.runMacroMenuItem.Size = new System.Drawing.Size(180, 22);
         this.runMacroMenuItem.Text = "Run Macro";
         this.runMacroMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F5;
+        
+        // 
+        // keybindsMenuItem
+        // 
+        this.keybindsMenuItem.Name = "keybindsMenuItem";
+        this.keybindsMenuItem.Size = new System.Drawing.Size(67, 20);
+        this.keybindsMenuItem.Text = "Keybinds";
+        this.keybindsMenuItem.Click += new System.EventHandler(this.KeybindsMenuItem_Click);
         
         // 
         // helpMenuItem
