@@ -48,6 +48,8 @@ partial class ScriptEditor
         this.stopRecordingMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.executeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.stopExecutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+        this.findToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         this.menuStrip.SuspendLayout();
         this.editorPanel.SuspendLayout();
         this.SuspendLayout();
@@ -132,6 +134,12 @@ partial class ScriptEditor
         this.saveAsToolStripMenuItem.Text = "Save As";
         this.saveAsToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.S;
         // 
+        // toolStripSeparator2
+        // 
+        this.toolStripSeparator2.Name = "toolStripSeparator2";
+        this.toolStripSeparator2.Size = new System.Drawing.Size(107, 6);
+        
+        // 
         // toolStripSeparator1
         // 
         this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -149,7 +157,9 @@ partial class ScriptEditor
         // 
         this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
         this.undoToolStripMenuItem,
-        this.redoToolStripMenuItem});
+        this.redoToolStripMenuItem,
+        this.toolStripSeparator2,
+        this.findToolStripMenuItem});
         this.editToolStripMenuItem.ForeColor = System.Drawing.Color.White;
         this.editToolStripMenuItem.Name = "editToolStripMenuItem";
         this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
@@ -213,6 +223,16 @@ partial class ScriptEditor
         this.redoToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
         this.redoToolStripMenuItem.Text = "Redo";
         this.redoToolStripMenuItem.Click += new System.EventHandler(this.RedoToolStripMenuItem_Click);
+        
+        // 
+        // findToolStripMenuItem
+        // 
+        this.findToolStripMenuItem.ForeColor = System.Drawing.Color.Black;
+        this.findToolStripMenuItem.Name = "findToolStripMenuItem";
+        this.findToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+        this.findToolStripMenuItem.Text = "Find";
+        this.findToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F;
+        this.findToolStripMenuItem.Click += new System.EventHandler(this.FindToolStripMenuItem_Click);
         // 
         // ScriptEditor
         // 
@@ -252,4 +272,7 @@ partial class ScriptEditor
     private System.Windows.Forms.ToolStripMenuItem stopRecordingMenuItem;
     private System.Windows.Forms.ToolStripMenuItem executeToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem stopExecutionToolStripMenuItem;
+
+    private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+    private System.Windows.Forms.ToolStripMenuItem findToolStripMenuItem;
 }

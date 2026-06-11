@@ -32,3 +32,7 @@ C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\obj\Debug\net10.0-wi
 C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\obj\Debug\net10.0-windows\ref\WinFormsApp.dll
 C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\bin\Debug\net10.0-windows\Resources\Favico.ico
 C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\bin\Debug\net10.0-windows\ICSharpCode.AvalonEdit.dll
+C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\obj\Debug\net10.0-windows\GUI\SearchTheme.baml
+C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\obj\Debug\net10.0-windows\WinFormsApp_Content.g.cs
+C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\obj\Debug\net10.0-windows\WinFormsApp_MarkupCompile.cache
+C:\Users\yari_\Desktop\Project(s)\Bidenator\app\WinFormsApp\obj\Debug\net10.0-windows\WinFormsApp.g.resources

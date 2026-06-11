@@ -17,6 +17,7 @@ using FormsMessageBox = System.Windows.Forms.MessageBox;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Rendering;
+using ICSharpCode.AvalonEdit.Search;
 
 namespace WinFormsApp.GUI;
 
@@ -75,10 +76,18 @@ public partial class ScriptEditor : Form
     public ScriptEditor()
     {
         InitializeComponent();
-
         editor = CreateEditor();
         elementHost1.Child = editor;
 
+        string assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+
+        var resourceUri = new Uri($"/{assemblyName};component/GUI/SearchTheme.xaml", UriKind.Relative);
+
+        var resDict = (System.Windows.ResourceDictionary)System.Windows.Application.LoadComponent(resourceUri);
+        this.editor.Resources.MergedDictionaries.Add(resDict);
+        elementHost1.Child = editor;
+
+        SearchPanel.Install(editor);
         editor.TextArea.TextView.LineTransformers.Add(new ScriptHighlightingColorizer(HighlightKeywords));
         editor.TextArea.TextView.BackgroundRenderers.Add(new CurrentLineBackgroundRenderer(editor));
         editor.TextArea.Caret.PositionChanged += (_, _) => editor.TextArea.TextView.InvalidateLayer(KnownLayer.Background);
@@ -118,18 +127,15 @@ public partial class ScriptEditor : Form
             WordWrap = false
         };
 
-        textEditor.Resources.Add(typeof(System.Windows.Controls.Primitives.ScrollBar), new Style(typeof(System.Windows.Controls.Primitives.ScrollBar))
-        {
-            Setters =
-            {
-                new Setter(System.Windows.Controls.Control.BackgroundProperty, System.Windows.Media.Brushes.Transparent),
-                new Setter(System.Windows.Controls.Control.BorderThicknessProperty, new Thickness(0)),
-                new Setter(FrameworkElement.WidthProperty, 8.0),
-                new Setter(FrameworkElement.HeightProperty, 8.0),
-                new Setter(System.Windows.Controls.Control.PaddingProperty, new Thickness(0)),
-                new Setter(System.Windows.Controls.Control.ForegroundProperty, new SolidColorBrush(Color.FromRgb(130, 130, 130)))
-            }
-        });
+        // Custom scrollbar style - proper sizing
+        var scrollBarStyle = new Style(typeof(System.Windows.Controls.Primitives.ScrollBar));
+        scrollBarStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty, System.Windows.Media.Brushes.Transparent));
+        scrollBarStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BorderThicknessProperty, new Thickness(0)));
+        scrollBarStyle.Setters.Add(new Setter(FrameworkElement.MinWidthProperty, 14.0));
+        scrollBarStyle.Setters.Add(new Setter(FrameworkElement.WidthProperty, double.NaN));
+        scrollBarStyle.Setters.Add(new Setter(System.Windows.Controls.Control.PaddingProperty, new Thickness(0)));
+        scrollBarStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty, new SolidColorBrush(Color.FromRgb(130, 130, 130))));
+        textEditor.Resources.Add(typeof(System.Windows.Controls.Primitives.ScrollBar), scrollBarStyle);
 
         return textEditor;
     }
@@ -208,6 +214,13 @@ public partial class ScriptEditor : Form
             var rect = new Rect(0, y, textView.RenderSize.Width, visualLine.Height);
             drawingContext.DrawRectangle(backgroundBrush, null, rect);
         }
+    }
+
+    private void FindToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        var searchPanel = SearchPanel.Install(editor);
+        searchPanel.Open();
+        searchPanel.Focus();
     }
 
     private void NewScriptMenuItem_Click(object? sender, EventArgs e)
