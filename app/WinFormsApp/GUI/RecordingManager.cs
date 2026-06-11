@@ -35,6 +35,8 @@ public sealed class RecordingManager : IDisposable
     private DateTime? _lastTimestamp;
     private POINT _lastMousePoint;
     private DateTime _lastMouseMoveTime;
+    private readonly Dictionary<KeyCode, DateTime> _pendingKeyDowns = new();
+    private const int HoldThresholdMs = 300;
 
     public bool IsRecording { get; private set; }
 
@@ -53,6 +55,7 @@ public sealed class RecordingManager : IDisposable
         _lastTimestamp = null;
         _lastMousePoint = default;
         _lastMouseMoveTime = DateTime.MinValue;
+        _pendingKeyDowns.Clear();
 
         _keyboardHook = SetWindowsHookEx(WhKeyboardLl, _keyboardHookProc, GetModuleHandle(null), 0);
         _mouseHook = SetWindowsHookEx(WhMouseLl, _mouseHookProc, GetModuleHandle(null), 0);
@@ -102,18 +105,43 @@ public sealed class RecordingManager : IDisposable
 
             if (messageType == WmKeydown || messageType == WmSyskeydown)
             {
+                FlushPendingKeyDowns();
+
                 if (IsModifierKey(key))
                 {
                     Record(new KeyboardCommand(key, KeyAction.Down));
                 }
                 else
                 {
-                    Record(new KeyboardCommand(key, KeyAction.Press));
+                    _pendingKeyDowns[key] = DateTime.UtcNow;
                 }
             }
             else if (messageType == WmKeyup || messageType == WmSyskeyup)
             {
-                if (IsModifierKey(key))
+                FlushPendingKeyDowns(key);
+
+                if (_pendingKeyDowns.TryGetValue(key, out var downTime))
+                {
+                    _pendingKeyDowns.Remove(key);
+                    var holdDuration = (DateTime.UtcNow - downTime).TotalMilliseconds;
+
+                    if (holdDuration < HoldThresholdMs)
+                    {
+                        Record(new KeyboardCommand(key, KeyAction.Press));
+                    }
+                    else
+                    {
+                        Record(new KeyboardCommand(key, KeyAction.Down));
+                        Record(new WaitCommand((int)Math.Min(holdDuration, 10000)));
+                        Record(new KeyboardCommand(key, KeyAction.Up));
+                    }
+                }
+                else if (IsModifierKey(key))
+                {
+                    // Modifier key up without a corresponding down (edge case)
+                    Record(new KeyboardCommand(key, KeyAction.Up));
+                }
+                else
                 {
                     Record(new KeyboardCommand(key, KeyAction.Up));
                 }
@@ -190,8 +218,13 @@ public sealed class RecordingManager : IDisposable
         return true;
     }
 
-    private void Record(IMacroCommand command)
+    private void Record(IMacroCommand command, bool flushPendingDowns = true)
     {
+        if (flushPendingDowns)
+        {
+            FlushPendingKeyDowns();
+        }
+
         var timestamp = DateTime.UtcNow;
         if (_lastTimestamp.HasValue)
         {
@@ -204,6 +237,39 @@ public sealed class RecordingManager : IDisposable
 
         _recordedCommands.Add(command);
         _lastTimestamp = timestamp;
+    }
+
+    private void FlushPendingKeyDowns(KeyCode? excludeKey = null)
+    {
+        if (_pendingKeyDowns.Count == 0)
+            return;
+
+        foreach (var pendingKey in _pendingKeyDowns.Keys)
+        {
+            if (excludeKey.HasValue && pendingKey == excludeKey.Value)
+                continue;
+
+            Record(new KeyboardCommand(pendingKey, KeyAction.Down), flushPendingDowns: false);
+        }
+
+        if (excludeKey.HasValue)
+        {
+            var preserved = new Dictionary<KeyCode, DateTime>();
+            foreach (var kvp in _pendingKeyDowns)
+            {
+                if (kvp.Key == excludeKey.Value)
+                    preserved[kvp.Key] = kvp.Value;
+            }
+            _pendingKeyDowns.Clear();
+            foreach (var kvp in preserved)
+            {
+                _pendingKeyDowns[kvp.Key] = kvp.Value;
+            }
+        }
+        else
+        {
+            _pendingKeyDowns.Clear();
+        }
     }
 
     private static bool IsModifierKey(KeyCode key)
