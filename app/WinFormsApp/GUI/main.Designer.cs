@@ -224,7 +224,7 @@ partial class Main
         this.gettingStartedDescriptionLabel.Size = new System.Drawing.Size(305, 160); // Stretched width
         this.gettingStartedDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right; // Added anchor
         this.gettingStartedDescriptionLabel.TabIndex = 1;
-        this.gettingStartedDescriptionLabel.Text = "Open the script editor to create or edit macros.\r\n\r\nStart with a blank script or load an existing macro once the editor opens.";
+        this.gettingStartedDescriptionLabel.Text = "Open the script editor to create or edit macros.\r\n\r\nStart with a blank script or load an existing macro once the editor opens.\r\n\r\nYou can also select the Keybinds option in the menubar to customize your shortcuts.";
         this.gettingStartedDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
         
         // 
