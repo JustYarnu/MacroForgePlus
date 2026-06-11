@@ -46,10 +46,10 @@ Macro Forge Plus is a desktop automation tool that allows you to create, record,
 
 ```bash
 # Clone the repository
-git clone https://github.com/JustYarnu/Bidenator.git
+git clone https://github.com/JustYarnu/MacroForgePlus.git
 
 # Navigate to the project directory
-cd Bidenator/app/WinFormsApp
+cd MacroForgePlus/app/WinFormsApp
 
 # Build the project
 dotnet build
